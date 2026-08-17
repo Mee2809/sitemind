@@ -1,0 +1,510 @@
+<title>Get a Quote — Prospect</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F8F9;
+    --card: #FFFFFF;
+    --field: #F1F2F4;
+    --field-border: #E4E5E8;
+    --field-focus-bg: #FFFFFF;
+    --text: #111111;
+    --label: #374151;
+    --muted: #6B7280;
+    --hint: #9CA3AF;
+    --accent: #2563EB;
+    --btn-bg: #18181B;
+    --btn-text: #FFFFFF;
+    --radio-active: #2563EB;
+    --divider: #E9EAEC;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0F1117;
+      --card: #1C1E26;
+      --field: #272A34;
+      --field-border: #353845;
+      --field-focus-bg: #2E3240;
+      --text: #F0F1F3;
+      --label: #CBD5E1;
+      --muted: #94A3B8;
+      --hint: #64748B;
+      --accent: #60A5FA;
+      --btn-bg: #F0F1F3;
+      --btn-text: #0F1117;
+      --radio-active: #60A5FA;
+      --divider: #2A2D38;
+      --card-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.25);
+    }
+  }
+
+  :root[data-theme="light"] {
+    --bg: #F7F8F9;
+    --card: #FFFFFF;
+    --field: #F1F2F4;
+    --field-border: #E4E5E8;
+    --field-focus-bg: #FFFFFF;
+    --text: #111111;
+    --label: #374151;
+    --muted: #6B7280;
+    --hint: #9CA3AF;
+    --accent: #2563EB;
+    --btn-bg: #18181B;
+    --btn-text: #FFFFFF;
+    --radio-active: #2563EB;
+    --divider: #E9EAEC;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #0F1117;
+    --card: #1C1E26;
+    --field: #272A34;
+    --field-border: #353845;
+    --field-focus-bg: #2E3240;
+    --text: #F0F1F3;
+    --label: #CBD5E1;
+    --muted: #94A3B8;
+    --hint: #64748B;
+    --accent: #60A5FA;
+    --btn-bg: #F0F1F3;
+    --btn-text: #0F1117;
+    --radio-active: #60A5FA;
+    --divider: #2A2D38;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 20px rgba(0,0,0,0.25);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .logo {
+    margin-bottom: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo img {
+    height: 56px;
+    width: auto;
+    display: block;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .page-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    text-wrap: balance;
+    line-height: 1.15;
+  }
+
+  .page-header p {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    max-width: 420px;
+    line-height: 1.5;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: var(--card-shadow);
+    padding: 36px 32px 40px;
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid var(--divider);
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .field + .field {
+    margin-top: 20px;
+  }
+
+  .field-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+
+  .field input[type="text"],
+  .field input[type="email"],
+  .field input[type="tel"],
+  .field input[type="date"] {
+    width: 100%;
+    background: var(--field);
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+    padding: 10px 13px;
+    font-size: 0.92rem;
+    color: var(--text);
+    font-family: inherit;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .field input::placeholder {
+    color: var(--hint);
+  }
+
+  .field input:focus {
+    border-color: var(--accent);
+    background: var(--field-focus-bg);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+  }
+
+  .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .checkbox-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 9px 16px;
+    background: var(--field);
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--label);
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+  }
+
+  .checkbox-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--radio-active);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .checkbox-option:has(input:checked) {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--field-focus-bg));
+    color: var(--accent);
+  }
+
+  .date-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .date-row .field + .field {
+    margin-top: 0;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: none;
+    border-radius: 8px;
+    padding: 13px 20px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    margin-top: 28px;
+    letter-spacing: 0.01em;
+  }
+
+  .submit-btn:hover { opacity: 0.87; }
+  .submit-btn:active { transform: scale(0.99); }
+  .submit-btn:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
+
+  /* ── Success card ── */
+  .success-inner {
+    text-align: center;
+    padding: 16px 0 8px;
+  }
+
+  .success-circle {
+    width: 60px;
+    height: 60px;
+    background: color-mix(in srgb, #22C55E 14%, transparent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+
+  .success-circle svg { color: #22C55E; }
+
+  .success-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .success-subtitle {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.5;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  .success-note {
+    margin-top: 14px;
+    font-size: 0.8rem;
+    color: #DC2626;
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+  }
+
+  @media (prefers-color-scheme: dark) { .success-note { color: #F87171; } }
+  :root[data-theme="dark"] .success-note { color: #F87171; }
+
+  .new-request-btn {
+    margin-top: 24px;
+    background: var(--field);
+    color: var(--text);
+    border: 1.5px solid var(--field-border);
+    border-radius: 8px;
+    padding: 11px 28px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .new-request-btn:hover { border-color: var(--accent); }
+
+  /* ── Error banner ── */
+  .error-banner {
+    display: none;
+    background: color-mix(in srgb, #EF4444 10%, var(--card));
+    border: 1.5px solid #EF4444;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: #DC2626;
+    margin-top: 14px;
+    text-align: center;
+  }
+
+  @media (prefers-color-scheme: dark) { .error-banner { color: #F87171; } }
+  :root[data-theme="dark"] .error-banner { color: #F87171; }
+
+  @media (max-width: 500px) {
+    .card { padding: 24px 18px 28px; }
+    .date-row { grid-template-columns: 1fr; }
+    .page-header h1 { font-size: 1.6rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<!-- Logo -->
+<div class="logo">
+  <img src="data:image/webp;base64,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" alt="Prospect logo">
+</div>
+
+<!-- Page header -->
+<div class="page-header">
+  <h1>Get a Quote</h1>
+  <p>Send a quote request to your selected rental companies.</p>
+</div>
+
+<!-- ── Form card ── -->
+<div class="card" id="formCard">
+  <form id="quoteForm">
+    <div class="field">
+      <label class="field-label" for="jobName">Job Name</label>
+      <input type="text" id="jobName" name="jobName" placeholder="Enter job name" required>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="jobAddress">Job Address</label>
+      <input type="text" id="jobAddress" name="jobAddress" placeholder="Enter job address" required>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="senderEmail">Your Email</label>
+      <input type="email" id="senderEmail" name="senderEmail" placeholder="Enter your email" required>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="senderPhone">Your Phone Number</label>
+      <input type="tel" id="senderPhone" name="senderPhone" placeholder="Enter your phone number" required>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Rental Company</span>
+      <div class="checkbox-group" id="rentalCompanyGroup">
+        <label class="checkbox-option checkbox-all"><input type="checkbox" id="checkAll"> All</label>
+        <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="Rentals Unlimited"> Rentals Unlimited</label>
+        <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="Washington Air"> Washington Air</label>
+        <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="Hertz"> Hertz</label>
+        <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="H&amp;E"> H&amp;E</label>
+        <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="CAT"> CAT</label>
+        <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="United Rentals"> United Rentals</label>
+        <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="Sunbelt Rentals"> Sunbelt Rentals</label>
+      </div>
+    </div>
+
+    <div class="date-row">
+      <div class="field">
+        <label class="field-label" for="startDate">Start Date</label>
+        <input type="date" id="startDate" name="startDate">
+      </div>
+      <div class="field">
+        <label class="field-label" for="endDate">End Date</label>
+        <input type="date" id="endDate" name="endDate">
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">Get Quote</button>
+    <div class="error-banner" id="formError">Something went wrong. Please try again.</div>
+  </form>
+</div>
+
+<!-- ── Success card ── -->
+<div class="card" id="successCard" style="display:none">
+  <div class="success-inner">
+    <div class="success-circle">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <p class="success-title" id="successTitle">Quote Request Sent!</p>
+    <p class="success-subtitle" id="successSubtitle">The selected rental companies have been emailed. Watch your inbox for their replies.</p>
+    <p class="success-note" id="successNote" style="display:none"></p>
+    <button type="button" class="new-request-btn" id="newRequestBtn">Send Another Request</button>
+  </div>
+</div>
+
+<script>
+  const WEBHOOK_URL = 'https://mediumvioletred-trout-986017.hostingersite.com/webhook/prospect-quote-request';
+
+  const formCard    = document.getElementById('formCard');
+  const successCard = document.getElementById('successCard');
+
+  const form        = document.getElementById('quoteForm');
+  const submitBtn   = document.getElementById('submitBtn');
+  const formError   = document.getElementById('formError');
+
+  const successSubtitle = document.getElementById('successSubtitle');
+  const successNote     = document.getElementById('successNote');
+  const newRequestBtn   = document.getElementById('newRequestBtn');
+
+  // ── "All" checkbox logic ──
+  const checkAll = document.getElementById('checkAll');
+  const vendorBoxes = () => document.querySelectorAll('#rentalCompanyGroup input[name="rentalCompany"]');
+
+  checkAll.addEventListener('change', () => {
+    vendorBoxes().forEach(cb => { cb.checked = checkAll.checked; });
+  });
+
+  document.getElementById('rentalCompanyGroup').addEventListener('change', (e) => {
+    if (e.target === checkAll) return;
+    const all = [...vendorBoxes()];
+    checkAll.checked = all.every(cb => cb.checked);
+  });
+
+  // ── Submit form ──
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    formError.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+
+    const fd = new FormData(form);
+    const payload = {};
+    fd.forEach((v, k) => {
+      if (k === 'rentalCompany') {
+        payload[k] = payload[k] ? payload[k] + ', ' + v : v;
+      } else {
+        payload[k] = v;
+      }
+    });
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('Server error ' + res.status);
+
+      const result = await res.json();
+
+      if (result.emailedCount > 0) {
+        successSubtitle.textContent = `Quote request sent to ${result.emailedCount} vendor${result.emailedCount === 1 ? '' : 's'}. Watch your inbox for their replies.`;
+      } else {
+        successSubtitle.textContent = 'No vendors were emailed.';
+      }
+
+      if (result.missingEmail && result.missingEmail.length > 0) {
+        successNote.style.display = 'block';
+        successNote.textContent = `Note: ${result.missingEmail.join(', ')} don't have an email on file yet — add it in Airtable to include them next time.`;
+      } else {
+        successNote.style.display = 'none';
+      }
+
+      formCard.style.display = 'none';
+      successCard.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (err) {
+      formError.style.display = 'block';
+      formError.textContent = 'Could not reach the server. Check your connection and try again.';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Get Quote';
+    }
+  });
+
+  // ── New request button ──
+  newRequestBtn.addEventListener('click', () => {
+    form.reset();
+    formError.style.display = 'none';
+    successCard.style.display = 'none';
+    formCard.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>

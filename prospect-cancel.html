@@ -1,0 +1,574 @@
+<title>Job Management — Prospect</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F8F9; --card: #FFFFFF; --field: #F1F2F4; --field-border: #E4E5E8;
+    --field-focus-bg: #FFFFFF; --text: #111111; --label: #374151; --muted: #6B7280;
+    --hint: #9CA3AF; --accent: #2563EB; --btn-bg: #18181B; --btn-text: #FFFFFF;
+    --divider: #E9EAEC; --card-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+    --red: #EF4444; --red-bg: color-mix(in srgb,#EF4444 10%,transparent); --red-text: #DC2626;
+    --orange: #F97316; --orange-bg: color-mix(in srgb,#F97316 10%,transparent); --orange-text: #C2410C;
+    --green: #22C55E; --green-bg: color-mix(in srgb,#22C55E 10%,transparent); --green-text: #15803D;
+    --blue: #0EA5E9; --blue-bg: color-mix(in srgb,#0EA5E9 10%,transparent); --blue-text: #0369A1;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0F1117;--card:#1C1E26;--field:#272A34;--field-border:#353845;
+      --field-focus-bg:#2E3240;--text:#F0F1F3;--label:#CBD5E1;--muted:#94A3B8;
+      --hint:#64748B;--accent:#60A5FA;--btn-bg:#F0F1F3;--btn-text:#0F1117;
+      --divider:#2A2D38;--card-shadow:0 1px 3px rgba(0,0,0,0.3),0 4px 20px rgba(0,0,0,0.25);
+      --red-text:#F87171;--orange-text:#FB923C;--green-text:#4ADE80;--blue-text:#38BDF8;
+    }
+  }
+
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 16px 80px;-webkit-font-smoothing:antialiased;}
+
+  .logo{margin-bottom:36px;display:flex;align-items:center;justify-content:center;}
+  .logo img{height:56px;width:auto;display:block;}
+  .page-header{text-align:center;margin-bottom:32px;}
+  .page-header h1{font-size:2rem;font-weight:700;letter-spacing:-0.03em;color:var(--text);line-height:1.15;}
+  .page-header p{margin-top:10px;font-size:0.9rem;color:var(--muted);max-width:440px;line-height:1.5;}
+
+  .card{background:var(--card);border-radius:14px;box-shadow:var(--card-shadow);padding:36px 32px 40px;width:100%;max-width:600px;border:1px solid var(--divider);}
+
+  /* Action type selector */
+  .action-selector{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:28px;}
+  .action-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;background:var(--field);border:2px solid transparent;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.8rem;font-weight:600;color:var(--muted);transition:all 0.15s;text-align:center;line-height:1.3;}
+  .action-btn .action-icon{font-size:1.4rem;}
+  .action-btn:hover{border-color:var(--accent);color:var(--text);}
+  .action-btn.active-cancel{border-color:var(--red);background:var(--red-bg);color:var(--red-text);}
+  .action-btn.active-reschedule{border-color:var(--orange);background:var(--orange-bg);color:var(--orange-text);}
+  .action-btn.active-off_rent{border-color:var(--green);background:var(--green-bg);color:var(--green-text);}
+  .action-btn.active-weather_day{border-color:var(--blue);background:var(--blue-bg);color:var(--blue-text);}
+
+  .field{display:flex;flex-direction:column;gap:7px;}
+  .field+.field{margin-top:20px;}
+  .field-label{font-size:0.78rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--label);}
+  .field input[type="text"],.field input[type="date"],.field select,.field textarea{width:100%;background:var(--field);border:1.5px solid transparent;border-radius:8px;padding:10px 13px;font-size:0.92rem;color:var(--text);font-family:inherit;transition:border-color 0.15s,background 0.15s,box-shadow 0.15s;outline:none;appearance:none;-webkit-appearance:none;}
+  .field input::placeholder,.field textarea::placeholder{color:var(--hint);}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);background:var(--field-focus-bg);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent);}
+  .field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;cursor:pointer;}
+  .field textarea{resize:vertical;min-height:80px;line-height:1.5;}
+
+  .date-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+  .date-row .field+.field{margin-top:0;}
+
+  .action-fields{display:none;}
+  .action-fields.visible{display:block;}
+
+  .divider{height:1px;background:var(--divider);margin:28px 0;}
+
+  /* Submit button — color changes per action */
+  .submit-btn{width:100%;border:none;border-radius:8px;padding:13px 20px;font-family:inherit;font-size:0.95rem;font-weight:600;cursor:pointer;transition:opacity 0.15s,transform 0.1s;margin-top:28px;letter-spacing:0.01em;color:#fff;}
+  .submit-btn:hover{opacity:0.87;}
+  .submit-btn:active{transform:scale(0.99);}
+  .submit-btn:disabled{opacity:0.6;cursor:not-allowed;pointer-events:none;}
+  .submit-btn.btn-cancel{background:var(--red);}
+  .submit-btn.btn-reschedule{background:var(--orange);}
+  .submit-btn.btn-off_rent{background:var(--green);}
+  .submit-btn.btn-weather_day{background:var(--blue);}
+  .submit-btn.btn-default{background:var(--btn-bg);color:var(--btn-text);}
+
+  /* Review card */
+  .review-header{margin-bottom:22px;}
+  .review-header h2{font-size:1.25rem;font-weight:700;color:var(--text);letter-spacing:-0.02em;margin-bottom:5px;}
+  .review-header p{font-size:0.84rem;color:var(--muted);line-height:1.45;}
+
+  .job-preview{background:var(--field);border-radius:10px;padding:18px;margin-bottom:4px;}
+  .job-preview-title{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:3px;}
+  .job-preview-sub{font-size:0.84rem;color:var(--muted);margin-bottom:14px;}
+  .job-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .job-preview-item{display:flex;flex-direction:column;gap:2px;}
+  .job-preview-item .detail-label{font-size:0.68rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--hint);}
+  .job-preview-item .detail-value{font-size:0.84rem;font-weight:500;color:var(--text);}
+
+  .action-summary-block{border-radius:10px;padding:16px 18px;margin-top:4px;}
+  .action-summary-block.cancel{background:var(--red-bg);border:1.5px solid color-mix(in srgb,var(--red) 30%,transparent);}
+  .action-summary-block.reschedule{background:var(--orange-bg);border:1.5px solid color-mix(in srgb,var(--orange) 30%,transparent);}
+  .action-summary-block.off_rent{background:var(--green-bg);border:1.5px solid color-mix(in srgb,var(--green) 30%,transparent);}
+  .action-summary-block.weather_day{background:var(--blue-bg);border:1.5px solid color-mix(in srgb,var(--blue) 30%,transparent);}
+
+  .action-summary-label{font-size:0.72rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px;}
+  .action-summary-label.cancel{color:var(--red-text);}
+  .action-summary-label.reschedule{color:var(--orange-text);}
+  .action-summary-label.off_rent{color:var(--green-text);}
+  .action-summary-label.weather_day{color:var(--blue-text);}
+
+  .action-summary-body{font-size:0.88rem;color:var(--text);line-height:1.5;}
+  .action-summary-sub{font-size:0.82rem;color:var(--muted);margin-top:4px;line-height:1.4;white-space:pre-line;}
+
+  .review-actions{display:flex;gap:12px;margin-top:26px;}
+  .edit-btn{flex:1;background:var(--field);color:var(--text);border:1.5px solid var(--field-border);border-radius:8px;padding:12px 20px;font-family:inherit;font-size:0.92rem;font-weight:600;cursor:pointer;transition:border-color 0.15s;}
+  .edit-btn:hover{border-color:var(--accent);}
+  .confirm-btn{flex:2;color:#fff;border:none;border-radius:8px;padding:12px 20px;font-family:inherit;font-size:0.92rem;font-weight:600;cursor:pointer;transition:opacity 0.15s;}
+  .confirm-btn:hover{opacity:0.87;}
+  .confirm-btn:disabled{opacity:0.6;cursor:not-allowed;pointer-events:none;}
+  .confirm-btn.cancel{background:var(--red);}
+  .confirm-btn.reschedule{background:var(--orange);}
+  .confirm-btn.off_rent{background:var(--green);}
+  .confirm-btn.weather_day{background:var(--blue);}
+
+  /* Success */
+  .success-inner{text-align:center;padding:16px 0 8px;}
+  .success-circle{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;}
+  .success-circle.cancel{background:var(--red-bg);}
+  .success-circle.cancel svg{color:var(--red);}
+  .success-circle.reschedule{background:var(--orange-bg);}
+  .success-circle.reschedule svg{color:var(--orange);}
+  .success-circle.off_rent{background:var(--green-bg);}
+  .success-circle.off_rent svg{color:var(--green);}
+  .success-circle.weather_day{background:var(--blue-bg);}
+  .success-circle.weather_day svg{color:var(--blue);}
+  .success-title{font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:8px;}
+  .success-subtitle{font-size:0.88rem;color:var(--muted);line-height:1.5;max-width:360px;margin:0 auto;}
+  .new-action-btn{margin-top:24px;background:var(--field);color:var(--text);border:1.5px solid var(--field-border);border-radius:8px;padding:11px 28px;font-family:inherit;font-size:0.9rem;font-weight:600;cursor:pointer;transition:border-color 0.15s;}
+  .new-action-btn:hover{border-color:var(--accent);}
+
+  /* Error banners */
+  .error-banner{display:none;border-radius:8px;padding:12px 16px;font-size:0.86rem;font-weight:500;margin-top:14px;text-align:center;}
+  .error-banner.error{background:var(--red-bg);border:1.5px solid var(--red);color:var(--red-text);}
+  .error-banner.warning{background:color-mix(in srgb,#F59E0B 10%,transparent);border:1.5px solid #F59E0B;color:#B45309;}
+  @media(prefers-color-scheme:dark){.error-banner.warning{color:#FCD34D;}}
+
+  @media(max-width:500px){
+    .card{padding:24px 18px 28px;}
+    .page-header h1{font-size:1.6rem;}
+    .action-selector{grid-template-columns:1fr;}
+    .job-preview-grid{grid-template-columns:1fr;}
+    .date-row{grid-template-columns:1fr;}
+    .review-actions{flex-direction:column-reverse;}
+    .edit-btn,.confirm-btn{flex:none;width:100%;}
+  }
+  @media(prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+
+<div class="logo">
+  <img src="data:image/webp;base64,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" alt="Prospect logo">
+</div>
+
+<div class="page-header">
+  <h1>Job Management</h1>
+  <p>Look up a job by number to cancel it, reschedule dates, call the equipment off rent, or log a weather day.</p>
+</div>
+
+<!-- ── Step 1: Form ── -->
+<div class="card" id="formCard">
+  <form id="mainForm">
+
+    <!-- Action selector -->
+    <div class="action-selector">
+      <button type="button" class="action-btn" data-action="cancel">
+        <span class="action-icon">🚫</span>Cancel Job
+      </button>
+      <button type="button" class="action-btn" data-action="reschedule">
+        <span class="action-icon">📅</span>Reschedule Dates
+      </button>
+      <button type="button" class="action-btn" data-action="off_rent">
+        <span class="action-icon">✅</span>Call Off Rent
+      </button>
+      <button type="button" class="action-btn" data-action="weather_day">
+        <span class="action-icon">🌧️</span>Weather Day
+      </button>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="jobNumber">Job Number</label>
+      <input type="text" id="jobNumber" name="jobNumber" placeholder="e.g. 1001" required>
+    </div>
+
+    <!-- Cancel fields -->
+    <div class="action-fields" id="fields-cancel">
+      <div class="field" style="margin-top:20px">
+        <label class="field-label" for="reason">Reason for Cancellation</label>
+        <select id="reason" name="reason">
+          <option value="" disabled selected>Select a reason</option>
+          <option value="Rain / Weather">Rain / Weather</option>
+          <option value="Materials not ready">Materials not ready</option>
+          <option value="Equipment no longer needed">Equipment no longer needed</option>
+          <option value="Job postponed">Job postponed</option>
+          <option value="Client request">Client request</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:20px">
+        <label class="field-label" for="cancelNotes">Additional Notes <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <textarea id="cancelNotes" placeholder="Any extra details"></textarea>
+      </div>
+    </div>
+
+    <!-- Reschedule fields -->
+    <div class="action-fields" id="fields-reschedule">
+      <div class="date-row" style="margin-top:20px">
+        <div class="field">
+          <label class="field-label" for="newStartDate">New Start Date</label>
+          <input type="date" id="newStartDate" name="newStartDate">
+        </div>
+        <div class="field">
+          <label class="field-label" for="newEndDate">New End Date</label>
+          <input type="date" id="newEndDate" name="newEndDate">
+        </div>
+      </div>
+      <div class="field" style="margin-top:20px">
+        <label class="field-label" for="rescheduleNotes">Reason / Notes <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <textarea id="rescheduleNotes" placeholder="Why are the dates changing?"></textarea>
+      </div>
+    </div>
+
+    <!-- Off Rent fields -->
+    <div class="action-fields" id="fields-off_rent">
+      <div class="field" style="margin-top:20px">
+        <label class="field-label" for="offRentDate">Date Equipment Available <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <input type="date" id="offRentDate" name="offRentDate">
+      </div>
+      <div class="field" style="margin-top:20px">
+        <label class="field-label" for="offRentNotes">Notes <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <textarea id="offRentNotes" placeholder="Any details about the equipment return"></textarea>
+      </div>
+    </div>
+
+    <!-- Weather Day fields -->
+    <div class="action-fields" id="fields-weather_day">
+      <div class="date-row" style="margin-top:20px">
+        <div class="field">
+          <label class="field-label" for="weatherFrom">First Day Affected</label>
+          <input type="date" id="weatherFrom" name="weatherFrom">
+        </div>
+        <div class="field">
+          <label class="field-label" for="weatherTo">Last Day Affected <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <input type="date" id="weatherTo" name="weatherTo">
+        </div>
+      </div>
+      <div class="field" style="margin-top:20px">
+        <label class="field-label" for="weatherReason">Reason</label>
+        <select id="weatherReason" name="weatherReason">
+          <option value="" disabled selected>Select a reason</option>
+          <option value="Rain">Rain</option>
+          <option value="Snow / Ice">Snow / Ice</option>
+          <option value="High Winds">High Winds</option>
+          <option value="Unsafe Conditions">Unsafe Conditions</option>
+          <option value="Site Closed">Site Closed</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="field" style="margin-top:20px">
+        <label class="field-label" for="weatherNotes">Notes <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <textarea id="weatherNotes" placeholder="Who did you speak with at the rental company?"></textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn btn-default" id="submitBtn" disabled>Select an action above</button>
+    <div class="error-banner error" id="formError"></div>
+    <div class="error-banner warning" id="notFoundBanner">No job found with that number. Double-check and try again.</div>
+  </form>
+</div>
+
+<!-- ── Step 2: Review ── -->
+<div class="card" id="reviewCard" style="display:none">
+  <div class="review-header">
+    <h2 id="reviewTitle">Confirm Action</h2>
+    <p>Review the details below before confirming.</p>
+  </div>
+
+  <div class="job-preview">
+    <p class="job-preview-title" id="previewJobName"></p>
+    <p class="job-preview-sub" id="previewJobAddress"></p>
+    <div class="job-preview-grid">
+      <div class="job-preview-item">
+        <span class="detail-label">Job Number</span>
+        <span class="detail-value" id="previewJobNumber"></span>
+      </div>
+      <div class="job-preview-item">
+        <span class="detail-label">Assignee</span>
+        <span class="detail-value" id="previewAssignee"></span>
+      </div>
+      <div class="job-preview-item">
+        <span class="detail-label">Rental Company</span>
+        <span class="detail-value" id="previewCompany"></span>
+      </div>
+      <div class="job-preview-item">
+        <span class="detail-label">Current Status</span>
+        <span class="detail-value" id="previewStatus"></span>
+      </div>
+      <div class="job-preview-item">
+        <span class="detail-label">Start Date</span>
+        <span class="detail-value" id="previewStartDate"></span>
+      </div>
+      <div class="job-preview-item">
+        <span class="detail-label">End Date</span>
+        <span class="detail-value" id="previewEndDate"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="action-summary-block" id="summaryBlock">
+    <p class="action-summary-label" id="summaryLabel"></p>
+    <p class="action-summary-body" id="summaryBody"></p>
+    <p class="action-summary-sub" id="summarySub"></p>
+  </div>
+
+  <div class="review-actions">
+    <button type="button" class="edit-btn" id="editBtn">Go Back</button>
+    <button type="button" class="confirm-btn" id="confirmBtn">Confirm</button>
+  </div>
+  <div class="error-banner error" id="confirmError"></div>
+</div>
+
+<!-- ── Step 3: Success ── -->
+<div class="card" id="successCard" style="display:none">
+  <div class="success-inner">
+    <div class="success-circle" id="successCircle">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <p class="success-title" id="successTitle"></p>
+    <p class="success-subtitle" id="successMsg"></p>
+    <button type="button" class="new-action-btn" id="newActionBtn">Manage Another Job</button>
+  </div>
+</div>
+
+<script>
+  const LOOKUP_URL  = 'https://mediumvioletred-trout-986017.hostingersite.com/webhook/prospect-cancel-lookup';
+  const CONFIRM_URL = 'https://mediumvioletred-trout-986017.hostingersite.com/webhook/prospect-cancel-confirm';
+
+  const formCard    = document.getElementById('formCard');
+  const reviewCard  = document.getElementById('reviewCard');
+  const successCard = document.getElementById('successCard');
+  const form        = document.getElementById('mainForm');
+  const submitBtn   = document.getElementById('submitBtn');
+  const formError   = document.getElementById('formError');
+  const notFoundBanner = document.getElementById('notFoundBanner');
+  const editBtn     = document.getElementById('editBtn');
+  const confirmBtn  = document.getElementById('confirmBtn');
+  const confirmError = document.getElementById('confirmError');
+  const newActionBtn = document.getElementById('newActionBtn');
+
+  let currentAction = null;
+  let pendingPayload = null;
+
+  const actionConfig = {
+    cancel:     { label: 'Cancel Job',       btnClass: 'btn-cancel',     confirmClass: 'cancel',     reviewTitle: 'Confirm Cancellation',  successTitle: 'Job Cancelled',        successIcon: 'cancel' },
+    reschedule: { label: 'Reschedule Dates',  btnClass: 'btn-reschedule', confirmClass: 'reschedule', reviewTitle: 'Confirm Reschedule',     successTitle: 'Dates Rescheduled',    successIcon: 'reschedule' },
+    off_rent:   { label: 'Call Off Rent',     btnClass: 'btn-off_rent',   confirmClass: 'off_rent',   reviewTitle: 'Confirm Off Rent',       successTitle: 'Equipment Off Rent',   successIcon: 'off_rent' },
+    weather_day:{ label: 'Weather Day',       btnClass: 'btn-weather_day',confirmClass: 'weather_day',reviewTitle: 'Confirm Weather Day',    successTitle: 'Weather Day Logged',   successIcon: 'weather_day' },
+  };
+
+  // Inclusive day count between two YYYY-MM-DD dates
+  function countDays(from, to) {
+    if (!from) return 0;
+    const start = new Date(from + 'T00:00:00');
+    const end   = to ? new Date(to + 'T00:00:00') : start;
+    const days  = Math.round((end - start) / 86400000) + 1;
+    return days > 0 ? days : 1;
+  }
+
+  function formatDate(d) {
+    if (!d) return '';
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  // Action selector
+  document.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      currentAction = action;
+      const cfg = actionConfig[action];
+
+      // Update button states
+      document.querySelectorAll('.action-btn').forEach(b => b.className = 'action-btn');
+      btn.classList.add('active-' + action);
+
+      // Show correct field section
+      document.querySelectorAll('.action-fields').forEach(f => f.classList.remove('visible'));
+      document.getElementById('fields-' + action).classList.add('visible');
+
+      // Update submit button
+      submitBtn.disabled = false;
+      submitBtn.className = 'submit-btn ' + cfg.btnClass;
+      submitBtn.textContent = 'Look Up Job';
+    });
+  });
+
+  // ── Step 1: Look up job ──
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentAction) return;
+
+    formError.style.display = 'none';
+    notFoundBanner.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Looking up…';
+
+    const jobNumber = document.getElementById('jobNumber').value.trim();
+
+    try {
+      const res = await fetch(LOOKUP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ jobNumber })
+      });
+
+      if (!res.ok) throw new Error('Server error ' + res.status);
+      const result = await res.json();
+
+      if (!result.found || !result.record?.id) {
+        notFoundBanner.style.display = 'block';
+        return;
+      }
+
+      const rec = result.record;
+
+      // Build payload based on action
+      pendingPayload = { jobNumber, action: currentAction };
+
+      if (currentAction === 'cancel') {
+        pendingPayload.reason = document.getElementById('reason').value || 'Not specified';
+        pendingPayload.notes  = document.getElementById('cancelNotes').value.trim();
+      } else if (currentAction === 'reschedule') {
+        pendingPayload.newStartDate    = document.getElementById('newStartDate').value;
+        pendingPayload.newEndDate      = document.getElementById('newEndDate').value;
+        pendingPayload.notes           = document.getElementById('rescheduleNotes').value.trim();
+      } else if (currentAction === 'off_rent') {
+        pendingPayload.offRentDate = document.getElementById('offRentDate').value;
+        pendingPayload.notes       = document.getElementById('offRentNotes').value.trim();
+      } else if (currentAction === 'weather_day') {
+        pendingPayload.weatherFrom   = document.getElementById('weatherFrom').value;
+        pendingPayload.weatherTo     = document.getElementById('weatherTo').value;
+        pendingPayload.weatherReason = document.getElementById('weatherReason').value || 'Not specified';
+        pendingPayload.notes         = document.getElementById('weatherNotes').value.trim();
+      }
+
+      populateReview(rec, pendingPayload);
+      formCard.style.display = 'none';
+      reviewCard.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (err) {
+      formError.textContent = 'Could not reach the server. Check your connection and try again.';
+      formError.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Look Up Job';
+    }
+  });
+
+  function populateReview(rec, payload) {
+    const cfg = actionConfig[currentAction];
+
+    document.getElementById('reviewTitle').textContent      = cfg.reviewTitle;
+    document.getElementById('previewJobName').textContent   = rec.jobName || '—';
+    document.getElementById('previewJobAddress').textContent= rec.jobAddress || '—';
+    document.getElementById('previewJobNumber').textContent = rec.jobNumber || payload.jobNumber;
+    document.getElementById('previewAssignee').textContent  = rec.assigneeName || '—';
+    document.getElementById('previewCompany').textContent   = rec.rentalCompany || '—';
+    document.getElementById('previewStatus').textContent    = rec.status || 'New';
+    document.getElementById('previewStartDate').textContent = rec.startDate || '—';
+    document.getElementById('previewEndDate').textContent   = rec.endDate || '—';
+
+    const block = document.getElementById('summaryBlock');
+    const label = document.getElementById('summaryLabel');
+    const body  = document.getElementById('summaryBody');
+    const sub   = document.getElementById('summarySub');
+
+    block.className = 'action-summary-block ' + currentAction;
+    label.className = 'action-summary-label ' + currentAction;
+
+    if (currentAction === 'cancel') {
+      label.textContent = 'Cancellation Reason';
+      body.textContent  = payload.reason;
+      sub.textContent   = payload.notes || '';
+    } else if (currentAction === 'reschedule') {
+      label.textContent = 'New Schedule';
+      body.textContent  = (payload.newStartDate || '—') + '  →  ' + (payload.newEndDate || '—');
+      sub.textContent   = payload.notes || '';
+    } else if (currentAction === 'off_rent') {
+      label.textContent = 'Off Rent';
+      body.textContent  = payload.offRentDate ? 'Equipment available as of ' + payload.offRentDate : 'Equipment to be called off rent';
+      sub.textContent   = payload.notes || '';
+    } else if (currentAction === 'weather_day') {
+      const days = countDays(payload.weatherFrom, payload.weatherTo);
+      const range = payload.weatherTo && payload.weatherTo !== payload.weatherFrom
+        ? formatDate(payload.weatherFrom) + ' – ' + formatDate(payload.weatherTo)
+        : formatDate(payload.weatherFrom);
+      label.textContent = 'Weather Day Credit';
+      body.textContent  = [range, days + (days === 1 ? ' day' : ' days'), payload.weatherReason]
+        .filter(Boolean).join('  ·  ');
+      sub.textContent   = [payload.notes, 'Equipment stays On Rent — this only logs the credit request.']
+        .filter(Boolean).join('\n');
+    }
+
+    sub.style.display = sub.textContent ? 'block' : 'none';
+
+    confirmBtn.className = 'confirm-btn ' + cfg.confirmClass;
+    confirmBtn.textContent = cfg.reviewTitle.replace('Confirm ', 'Confirm ');
+  }
+
+  editBtn.addEventListener('click', () => {
+    reviewCard.style.display = 'none';
+    formCard.style.display = 'block';
+    confirmError.style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ── Step 2: Confirm ──
+  confirmBtn.addEventListener('click', async () => {
+    confirmError.style.display = 'none';
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Saving…';
+
+    try {
+      const res = await fetch(CONFIRM_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(pendingPayload)
+      });
+
+      if (!res.ok) throw new Error('Server error ' + res.status);
+
+      const cfg = actionConfig[currentAction];
+      const jobName = document.getElementById('previewJobName').textContent;
+      const circle  = document.getElementById('successCircle');
+      circle.className = 'success-circle ' + cfg.successIcon;
+
+      document.getElementById('successTitle').textContent = cfg.successTitle;
+      const wDays = currentAction === 'weather_day'
+        ? countDays(pendingPayload.weatherFrom, pendingPayload.weatherTo) : 0;
+
+      document.getElementById('successMsg').textContent   =
+        currentAction === 'cancel'      ? `"${jobName}" has been marked as Cancelled in the system.` :
+        currentAction === 'reschedule'  ? `"${jobName}" has been rescheduled. Airtable has been updated.` :
+        currentAction === 'weather_day' ? `${wDays} weather ${wDays === 1 ? 'day' : 'days'} logged for "${jobName}". Contact the rental company to confirm the credit.` :
+                                          `"${jobName}" equipment has been called off rent.`;
+
+      reviewCard.style.display = 'none';
+      successCard.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (err) {
+      confirmError.textContent = 'Could not save. Please try again.';
+      confirmError.style.display = 'block';
+    } finally {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = actionConfig[currentAction].reviewTitle;
+    }
+  });
+
+  newActionBtn.addEventListener('click', () => {
+    form.reset();
+    document.querySelectorAll('.action-btn').forEach(b => b.className = 'action-btn');
+    document.querySelectorAll('.action-fields').forEach(f => f.classList.remove('visible'));
+    currentAction = null;
+    pendingPayload = null;
+    submitBtn.disabled = true;
+    submitBtn.className = 'submit-btn btn-default';
+    submitBtn.textContent = 'Select an action above';
+    formError.style.display = 'none';
+    notFoundBanner.style.display = 'none';
+    successCard.style.display = 'none';
+    formCard.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
