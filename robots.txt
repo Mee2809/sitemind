@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /request.html
+Disallow: /manage.html
+Disallow: /quote.html

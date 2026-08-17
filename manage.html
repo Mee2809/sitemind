@@ -156,6 +156,11 @@
 <div class="card" id="formCard">
   <form id="mainForm">
 
+    <div class="field">
+      <label class="field-label" for="accessCode">Access Code</label>
+      <input type="text" id="accessCode" name="accessCode" placeholder="Enter access code" required autocomplete="off" style="margin-bottom:20px;">
+    </div>
+
     <!-- Action selector -->
     <div class="action-selector">
       <button type="button" class="action-btn" data-action="cancel">
@@ -405,10 +410,11 @@
     const jobNumber = document.getElementById('jobNumber').value.trim();
 
     try {
+      const accessCode = document.getElementById('accessCode').value.trim();
       const res = await fetch(LOOKUP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ jobNumber })
+        body: JSON.stringify({ jobNumber, accessCode })
       });
 
       if (!res.ok) throw new Error('Server error ' + res.status);
@@ -422,7 +428,7 @@
       const rec = result.record;
 
       // Build payload based on action
-      pendingPayload = { jobNumber, action: currentAction };
+      pendingPayload = { jobNumber, action: currentAction, accessCode };
 
       if (currentAction === 'cancel') {
         pendingPayload.reason = document.getElementById('reason').value || 'Not specified';
