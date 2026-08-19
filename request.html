@@ -735,20 +735,29 @@
     </div>
 
     <div class="field">
-      <label class="field-label" for="assigneeName">Assignee Name</label>
-      <input type="text" id="assigneeName" name="assigneeName" placeholder="Enter assignee name">
+      <label class="field-label" for="superintendent">Superintendent</label>
+      <select id="superintendent" name="superintendent">
+        <option value="" disabled selected>Loading…</option>
+      </select>
+      <p class="field-hint">Who runs this job. They get the weekly rental summary, even if someone else called it in.</p>
     </div>
 
     <div class="field">
-      <label class="field-label" for="assigneePhone">Assignee Phone Number</label>
-      <input type="tel" id="assigneePhone" name="assigneePhone" placeholder="Enter assignee phone number">
+      <label class="field-label" for="assigneeName">On-Site Contact Name</label>
+      <input type="text" id="assigneeName" name="assigneeName" placeholder="Enter on-site contact name">
+      <p class="field-hint">Whoever will be on site to take delivery — foreman, or the superintendent if that's you.</p>
+    </div>
+
+    <div class="field">
+      <label class="field-label" for="assigneePhone">On-Site Contact Phone</label>
+      <input type="tel" id="assigneePhone" name="assigneePhone" placeholder="Enter on-site contact phone">
       <p class="field-hint">By providing your phone number, you agree to receive SMS text messages about your equipment rental status, including reminders and due date alerts. Msg frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help.</p>
     </div>
 
     <div class="field">
-      <label class="field-label" for="assigneeEmail">Assignee Email</label>
-      <input type="email" id="assigneeEmail" name="assigneeEmail" placeholder="Enter assignee email" autocomplete="email">
-      <p class="field-hint">Used for the weekly rental summary. Optional.</p>
+      <label class="field-label" for="assigneeEmail">On-Site Contact Email</label>
+      <input type="email" id="assigneeEmail" name="assigneeEmail" placeholder="Enter on-site contact email" autocomplete="email">
+      <p class="field-hint">Optional. Gets a copy of the order sent to the rental company.</p>
     </div>
 
     <div class="field">
@@ -883,6 +892,7 @@
 <script>
   const WEBHOOK_STEP1 = 'https://mediumvioletred-trout-986017.hostingersite.com/webhook/prospect-job-request';
   const WEBHOOK_STEP2 = 'https://mediumvioletred-trout-986017.hostingersite.com/webhook/prospect-job-confirm';
+  const SUPERS_URL    = 'https://mediumvioletred-trout-986017.hostingersite.com/webhook/prospect-supers';
 
   const formCard    = document.getElementById('formCard');
   const reviewCard  = document.getElementById('reviewCard');
@@ -950,6 +960,41 @@
     });
     renderFileList();
   }
+
+  // Superintendent list is served from Airtable so office staff can add or
+  // retire a super without anyone touching this page. If the call fails the
+  // select degrades to a plain text box rather than blocking the request.
+  const superSelect = document.getElementById('superintendent');
+
+  function superFallback(message) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'superintendent';
+    input.name = 'superintendent';
+    input.placeholder = 'Type the superintendent’s name';
+    superSelect.replaceWith(input);
+    const hint = input.parentElement.querySelector('.field-hint');
+    if (hint && message) hint.textContent = message;
+  }
+
+  (async () => {
+    try {
+      const res = await fetch(SUPERS_URL, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const { supers } = await res.json();
+      if (!Array.isArray(supers) || !supers.length) throw new Error('empty list');
+
+      superSelect.innerHTML = '<option value="" disabled selected>Select a superintendent</option>';
+      for (const name of supers) {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        superSelect.appendChild(opt);
+      }
+    } catch (err) {
+      superFallback('Could not load the superintendent list — type the name instead.');
+    }
+  })();
 
   fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value = ''; });
   uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
@@ -1019,7 +1064,8 @@
       ['Job Number',    data.jobNumber],
       ['Job Name',      data.jobName],
       ['Job Address',   data.jobAddress],
-      ['Assignee',      data.assigneeName],
+      ['Superintendent', data.superintendent],
+      ['On-Site Contact', data.assigneeName],
       ['Phone',         data.assigneePhone],
       ['Email',         data.assigneeEmail],
       ['Rental Company',data.rentalCompany],
