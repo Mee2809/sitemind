@@ -754,7 +754,6 @@
     <div class="field">
       <span class="field-label">Rental Company</span>
       <div class="checkbox-group" id="rentalCompanyGroup">
-        <label class="checkbox-option checkbox-all"><input type="checkbox" id="checkAll"> All</label>
         <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="Rentals Unlimited"> Rentals Unlimited</label>
         <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="Washington Air"> Washington Air</label>
         <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="Hertz"> Hertz</label>
@@ -951,19 +950,6 @@
     });
     renderFileList();
   }
-
-  const checkAll = document.getElementById('checkAll');
-  const vendorBoxes = () => document.querySelectorAll('#rentalCompanyGroup input[name="rentalCompany"]');
-
-  checkAll.addEventListener('change', () => {
-    vendorBoxes().forEach(cb => { cb.checked = checkAll.checked; });
-  });
-
-  document.getElementById('rentalCompanyGroup').addEventListener('change', (e) => {
-    if (e.target === checkAll) return;
-    const all = [...vendorBoxes()];
-    checkAll.checked = all.every(cb => cb.checked);
-  });
 
   fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value = ''; });
   uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
