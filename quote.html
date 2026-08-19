@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Get a Quote — Prospect</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -104,6 +109,7 @@
   .page-header {
     text-align: center;
     margin-bottom: 32px;
+    padding: 0 8px;
   }
 
   .page-header h1 {
@@ -160,7 +166,7 @@
     border: 1.5px solid transparent;
     border-radius: 8px;
     padding: 10px 13px;
-    font-size: 0.92rem;
+    font-size: 16px;
     color: var(--text);
     font-family: inherit;
     transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
@@ -199,11 +205,12 @@
     color: var(--label);
     transition: border-color 0.15s, background 0.15s;
     user-select: none;
+    min-height: 44px;
   }
 
   .checkbox-option input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     accent-color: var(--radio-active);
     cursor: pointer;
     flex-shrink: 0;
@@ -240,6 +247,7 @@
     transition: opacity 0.15s, transform 0.1s;
     margin-top: 28px;
     letter-spacing: 0.01em;
+    min-height: 48px;
   }
 
   .submit-btn:hover { opacity: 0.87; }
@@ -247,7 +255,6 @@
   .submit-btn:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; }
   .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
 
-  /* ── Success card ── */
   .success-inner {
     text-align: center;
     padding: 16px 0 8px;
@@ -306,11 +313,11 @@
     font-weight: 600;
     cursor: pointer;
     transition: border-color 0.15s;
+    min-height: 48px;
   }
 
   .new-request-btn:hover { border-color: var(--accent); }
 
-  /* ── Error banner ── */
   .error-banner {
     display: none;
     background: color-mix(in srgb, #EF4444 10%, var(--card));
@@ -327,17 +334,30 @@
   @media (prefers-color-scheme: dark) { .error-banner { color: #F87171; } }
   :root[data-theme="dark"] .error-banner { color: #F87171; }
 
-  @media (max-width: 500px) {
-    .card { padding: 24px 18px 28px; }
+  .divider {
+    height: 1px;
+    background: var(--divider);
+    margin: 20px 0;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 24px 12px 60px; }
+    .logo { margin-bottom: 24px; }
+    .logo img { height: 44px; }
+    .card { padding: 20px 16px 24px; border-radius: 12px; }
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 1.5rem; }
+    .page-header p { font-size: 0.85rem; }
     .date-row { grid-template-columns: 1fr; }
-    .page-header h1 { font-size: 1.6rem; }
+    .checkbox-option { padding: 10px 12px; font-size: 0.84rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; }
   }
 </style>
-
+</head>
+<body>
 <!-- Logo -->
 <div class="logo">
   <img src="data:image/webp;base64,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" alt="Prospect logo">
@@ -349,7 +369,7 @@
   <p>Send a quote request to your selected rental companies.</p>
 </div>
 
-<!-- ── Form card ── -->
+<!-- Form card -->
 <div class="card" id="formCard">
   <form id="quoteForm">
     <div class="field">
@@ -357,7 +377,7 @@
       <input type="text" id="accessCode" name="accessCode" placeholder="Enter access code" required autocomplete="off">
     </div>
 
-    <div class="divider" style="margin:20px 0;border-top:1px solid var(--divider);"></div>
+    <div class="divider"></div>
 
     <div class="field">
       <label class="field-label" for="jobName">Job Name</label>
@@ -386,7 +406,7 @@
         <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="Rentals Unlimited"> Rentals Unlimited</label>
         <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="Washington Air"> Washington Air</label>
         <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="Hertz"> Hertz</label>
-        <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="H&amp;E"> H&amp;E</label>
+        <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="H&E"> H&amp;E</label>
         <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="CAT"> CAT</label>
         <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="United Rentals"> United Rentals</label>
         <label class="checkbox-option"><input type="checkbox" name="rentalCompany" value="Sunbelt Rentals"> Sunbelt Rentals</label>
@@ -409,12 +429,12 @@
   </form>
 </div>
 
-<!-- ── Success card ── -->
+<!-- Success card -->
 <div class="card" id="successCard" style="display:none">
   <div class="success-inner">
     <div class="success-circle">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="20 6 9 17 4 12"/>
+        <polyline points="20 6 9 17 4 12"></polyline>
       </svg>
     </div>
     <p class="success-title" id="successTitle">Quote Request Sent!</p>
@@ -438,7 +458,6 @@
   const successNote     = document.getElementById('successNote');
   const newRequestBtn   = document.getElementById('newRequestBtn');
 
-  // ── "All" checkbox logic ──
   const checkAll = document.getElementById('checkAll');
   const vendorBoxes = () => document.querySelectorAll('#rentalCompanyGroup input[name="rentalCompany"]');
 
@@ -452,7 +471,6 @@
     checkAll.checked = all.every(cb => cb.checked);
   });
 
-  // ── Submit form ──
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     formError.style.display = 'none';
@@ -506,7 +524,6 @@
     }
   });
 
-  // ── New request button ──
   newRequestBtn.addEventListener('click', () => {
     form.reset();
     formError.style.display = 'none';
@@ -515,3 +532,5 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 </script>
+</body>
+</html>
