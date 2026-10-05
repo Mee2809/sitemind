@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Request Equipment — SiteMind</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* Shared by request.html, manage.html and quote.html — keep the three copies identical. */
+  :root {
+    color-scheme: light dark;
+    --paper: #f2f0ea;
+    --surface: #ffffff;
+    --text: #1b1d1f;
+    --muted: #55595e;
+    --line: #dcd8cd;
+    --line-strong: #b5af9f;
+    --ink: #0f1113;
+    --hivis: #ffc21a;
+    --focus: #1b1d1f;
+    --red: #b42318;   --red-bg: #fbeae8;
+    --green: #1d6f37; --green-bg: #e5f2e9;
+    --blue: #1d5fa8;  --blue-bg: #e7eff9;
+    --amber: #8a5300; --amber-bg: #fcefd2;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0f1113;
+      --surface: #171a1d;
+      --text: #edece8;
+      --muted: #a3a9b0;
+      --line: #2a2f35;
+      --line-strong: #3d434a;
+      --focus: #ffc21a;
+      --red: #ff8a7f;   --red-bg: rgba(255,107,94,.13);
+      --green: #5ee08f; --green-bg: rgba(74,222,128,.12);
+      --blue: #8cbcff;  --blue-bg: rgba(127,179,255,.12);
+      --amber: #ffc21a; --amber-bg: rgba(255,194,26,.12);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--text);
+    font: 400 16px/1.5 "Archivo", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+  /* ── top bar + tool tabs ── */
+  .topbar { background: var(--ink); color: #edece8; }
+  .topbar .in { max-width: 720px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-stretch: 85%; font-size: 19px; text-decoration: none; }
+  .mark { width: 22px; height: 22px; background: var(--hivis); clip-path: polygon(0 100%, 50% 0, 100% 100%, 72% 100%, 50% 45%, 28% 100%); }
+  .client { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #a3a9b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tabs { position: sticky; top: 0; z-index: 5; background: var(--ink); border-top: 1px solid #2a2f35; }
+  .tabs .in { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
+  .tabs a { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; color: #a3a9b0; text-decoration: none; font-weight: 600; font-size: 15px; border-bottom: 3px solid transparent; transition: color .15s, border-color .15s; }
+  .tabs a:hover { color: #fff; }
+  .tabs a[aria-current="page"] { color: #fff; border-bottom-color: var(--hivis); }
+  .tabs svg { width: 18px; height: 18px; flex: none; }
+  .tabs a:focus-visible { outline-color: var(--hivis); outline-offset: -3px; }
+
+  /* ── page head ── */
+  .page { max-width: 720px; margin: 0 auto; padding: 28px 16px 40px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: clamp(38px, 9vw, 56px); font-weight: 800; font-stretch: 76%; text-transform: uppercase; line-height: .96; letter-spacing: -.01em; margin: 8px 0 12px; }
+  .lede { color: var(--muted); font-size: 17px; max-width: 54ch; }
+
+  /* ── progress ── */
+  .steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 26px 0 6px; }
+  .steps li { border-top: 4px solid var(--line); padding-top: 8px; font-size: 14px; font-weight: 600; color: var(--muted); transition: border-color .25s, color .25s; }
+  .steps li span { font-family: var(--mono); font-size: 12px; margin-right: 6px; }
+  .steps li.past { border-color: var(--text); color: var(--text); }
+  .steps li[aria-current="step"] { border-color: var(--hivis); color: var(--text); }
+
+  /* ── form blocks ── */
+  .view { animation: rise .28s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  .block { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 22px 20px 24px; margin-top: 14px; }
+  .block-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; }
+  .block-head .n { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .block-head h2 { font-size: 22px; font-weight: 800; font-stretch: 80%; text-transform: uppercase; letter-spacing: .01em; line-height: 1.1; }
+  .block-head p { margin-left: auto; font-size: 13px; color: var(--muted); }
+
+  .field { display: grid; gap: 7px; }
+  .field + .field, .field + .row, .row + .field, .row + .row, .block > p + .field, .block > p + .row { margin-top: 20px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .lbl { font-weight: 600; font-size: 15px; }
+  .opt { font-weight: 400; color: var(--muted); }
+  .hint { font-size: 14px; color: var(--muted); line-height: 1.45; }
+  .fine { font-size: 13px; color: var(--muted); line-height: 1.45; }
+
+  input[type="text"], input[type="tel"], input[type="email"], input[type="date"], select, textarea {
+    display: block; width: 100%; min-height: 52px; padding: 12px 14px;
+    font: inherit; font-size: 16px; color: var(--text);
+    background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: 6px;
+    -webkit-appearance: none; appearance: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input::placeholder, textarea::placeholder { color: var(--muted); opacity: .75; }
+  input:hover, select:hover, textarea:hover { border-color: var(--muted); }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--text); box-shadow: 0 0 0 3px var(--hivis); }
+  input:user-invalid, select:user-invalid { border-color: var(--red); }
+  input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+  textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
+  select { padding-right: 42px; cursor: pointer; background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2355595e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center; }
+
+  /* choice tiles (checkboxes) */
+  .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .choice { position: relative; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 10px 14px; background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: 6px; font-weight: 600; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: border-color .15s, background .15s; }
+  .choice:hover { border-color: var(--muted); }
+  .choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .box { flex: none; width: 22px; height: 22px; border: 2px solid var(--line-strong); border-radius: 4px; display: grid; place-items: center; transition: background .15s, border-color .15s; }
+  .box::after { content: ""; width: 6px; height: 11px; margin-top: -2px; border: solid #111; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg) scale(.3); opacity: 0; transition: transform .15s, opacity .15s; }
+  .choice:has(input:checked) { border-color: var(--text); background: color-mix(in srgb, var(--hivis) 16%, var(--surface)); }
+  .choice:has(input:checked) .box { background: var(--hivis); border-color: var(--hivis); }
+  .choice:has(input:checked) .box::after { transform: rotate(45deg) scale(1); opacity: 1; }
+  .choice:has(input:focus-visible) { border-color: var(--text); box-shadow: 0 0 0 3px var(--hivis); }
+  .choice.all { grid-column: 1 / -1; border-style: dashed; }
+
+  /* yes / no segmented control */
+  .seg { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--line-strong); border-radius: 6px; overflow: hidden; background: var(--surface); }
+  .seg label { position: relative; min-height: 52px; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .15s, color .15s; }
+  .seg label + label { border-left: 1.5px solid var(--line-strong); }
+  .seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .seg label:has(:checked) { background: var(--text); color: var(--surface); }
+  .seg label.danger:has(:checked) { background: var(--red); color: #fff; }
+  .seg label:has(:focus-visible) { box-shadow: inset 0 0 0 3px var(--hivis); }
+
+  /* ── buttons ── */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; padding: 0 22px; border: 0; border-radius: 6px; font: 700 17px/1 "Archivo", system-ui, sans-serif; cursor: pointer; text-decoration: none; transition: background .15s, transform .1s, opacity .15s; }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn-go { background: var(--hivis); color: #111; box-shadow: inset 0 -3px 0 rgba(0,0,0,.16); }
+  .btn-go:hover { background: #ffd04d; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-quiet { background: transparent; color: var(--text); border: 1.5px solid var(--line-strong); }
+  .btn-quiet:hover { border-color: var(--text); }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+  .spin { width: 18px; height: 18px; border: 2.5px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .actionbar { position: sticky; bottom: 0; z-index: 4; margin-top: 18px; padding: 14px 0 max(14px, env(safe-area-inset-bottom)); background: linear-gradient(to bottom, transparent, var(--paper) 28%); }
+  .pair { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+
+  .alert { display: none; margin-top: 12px; padding: 12px 14px; border-left: 4px solid var(--red); border-radius: 4px; background: var(--red-bg); color: var(--red); font-weight: 600; font-size: 15px; }
+  .alert.warn { border-color: var(--amber); background: var(--amber-bg); color: var(--amber); }
+
+  /* ── review ticket ── */
+  .ticket { margin-top: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .ticket-head { background: var(--ink); color: #edece8; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+  .ticket-head .eyebrow { color: #a3a9b0; }
+  .ticket-head h2 { font-size: 24px; font-weight: 800; font-stretch: 80%; text-transform: uppercase; line-height: 1.1; margin-top: 2px; }
+  .ticket-body { padding: 4px 20px 8px; }
+  .dl { display: grid; grid-template-columns: minmax(110px, 34%) 1fr; }
+  .dl dt, .dl dd { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .dl dt { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-top: 14px; padding-right: 12px; }
+  .dl dd { font-weight: 500; overflow-wrap: anywhere; white-space: pre-line; }
+  .dl dt:nth-last-of-type(1), .dl dd:last-child { border-bottom: 0; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; padding: 5px 11px; border-radius: 99px; white-space: nowrap; }
+  .chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .chip.red { background: var(--red-bg); color: var(--red); }
+  .chip.green { background: var(--green-bg); color: var(--green); }
+  .ticket-head .chip.red { background: #ff6b5e; color: #111; }
+  .ticket-head .chip.green { background: #4ade80; color: #111; }
+
+  /* ── done ── */
+  .done { margin-top: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 28px 22px; }
+  .done-icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--green-bg); color: var(--green); }
+  .done-icon svg { width: 28px; height: 28px; }
+  .done h2 { font-size: 34px; font-weight: 800; font-stretch: 78%; text-transform: uppercase; line-height: 1; margin: 18px 0 10px; }
+  .done > p { color: var(--muted); font-size: 17px; }
+  .next { list-style: none; margin: 22px 0 26px; border-top: 1px solid var(--line); }
+  .next li { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .next li span { font-family: var(--mono); font-size: 12px; color: var(--muted); padding-top: 3px; }
+
+  footer { max-width: 720px; margin: 0 auto; padding: 20px 16px 40px; display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; color: var(--muted); }
+  footer a { color: var(--muted); }
+
+  @media (max-width: 600px) {
+    .page { padding-top: 22px; }
+    .block { padding: 18px 16px 20px; }
+    .block-head p { display: none; }
+    .row { grid-template-columns: 1fr; }
+    .ticket-body { padding: 4px 16px 8px; }
+    .dl { grid-template-columns: 1fr; }
+    .dl dt { border-bottom: 0; padding: 12px 0 0; }
+    .dl dd { padding-top: 2px; }
+  }
+  @media (max-width: 340px) {
+    .choices { grid-template-columns: 1fr; }
+    .client { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  /* ── page-specific ── */
+
+  .ai { padding: 18px 20px 20px; border-bottom: 1px solid var(--line); }
+  .ai-summary { font-size: 17px; line-height: 1.5; }
+  .facts3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
+  .facts3 span { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .facts3 b { display: block; margin-top: 3px; font-size: 15px; }
+
+  .drop { position: relative; display: flex; align-items: center; gap: 14px; padding: 16px; border: 1.5px dashed var(--line-strong); border-radius: 6px; background: var(--paper); cursor: pointer; transition: border-color .15s, background .15s; }
+  .drop:hover, .drop.over { border-color: var(--text); background: color-mix(in srgb, var(--hivis) 10%, var(--surface)); }
+  .drop:has(input:focus-visible) { border-color: var(--text); box-shadow: 0 0 0 3px var(--hivis); }
+  .drop input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+  .drop svg { width: 28px; height: 28px; flex: none; color: var(--muted); }
+  .drop b { display: block; }
+  .files { display: grid; gap: 6px; }
+  .files:empty { display: none; }
+  .file { display: flex; align-items: center; gap: 10px; padding: 4px 4px 4px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 15px; }
+  .file .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+  .file .size { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .file button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 4px; background: none; color: var(--muted); cursor: pointer; }
+  .file button:hover { color: var(--red); background: var(--red-bg); }
+  .file button svg { width: 16px; height: 16px; }
+  @media (max-width: 600px) {
+    .ai { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="in">
+    <a class="brand" href="request.html"><span class="mark" aria-hidden="true"></span>SiteMind</a>
+    <span class="client">Prospect Waterproofing</span>
+  </div>
+</header>
+<nav class="tabs" aria-label="Tools">
+  <div class="in">
+    <a href="request.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Request</a>
+    <a href="manage.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Manage</a>
+    <a href="quote.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Quote</a>
+  </div>
+</nav>
+
+<main class="page">
+  <p class="eyebrow">Job request</p>
+  <h1>Order equipment</h1>
+  <p class="lede">Tell us the job, the equipment and who takes delivery. You'll see a summary to check before anything is sent.</p>
+
+  <ol class="steps" aria-label="Progress">
+    <li aria-current="step"><span>01</span>Details</li>
+    <li><span>02</span>Review</li>
+    <li><span>03</span>Sent</li>
+  </ol>
+
+  <!-- Step 1: details -->
+  <form class="view" id="formView" novalidate>
+    <section class="block">
+      <div class="field">
+        <label class="lbl" for="accessCode">Access code</label>
+        <input type="text" id="accessCode" name="accessCode" required autocomplete="off" autocapitalize="off" spellcheck="false">
+        <p class="hint">The crew code from your office.</p>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="h-job">
+      <div class="block-head"><span class="n">01</span><h2 id="h-job">Job</h2></div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl" for="jobNumber">Job number</label>
+          <input type="text" id="jobNumber" name="jobNumber" placeholder="e.g. 24-118">
+        </div>
+        <div class="field">
+          <label class="lbl" for="jobName">Job name</label>
+          <input type="text" id="jobName" name="jobName" placeholder="e.g. Riverside Plaza">
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl" for="jobAddress">Job address</label>
+        <input type="text" id="jobAddress" name="jobAddress" autocomplete="street-address" placeholder="Street, city">
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="h-people">
+      <div class="block-head"><span class="n">02</span><h2 id="h-people">People</h2></div>
+      <div class="field">
+        <label class="lbl" for="superintendent">Superintendent</label>
+        <select id="superintendent" name="superintendent">
+          <option value="" disabled selected>Loading…</option>
+        </select>
+        <p class="hint">Who runs this job. They get the weekly rental summary, even if someone else called it in.</p>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl" for="assigneeName">On-site contact</label>
+          <input type="text" id="assigneeName" name="assigneeName" autocomplete="name" placeholder="Foreman, or you">
+        </div>
+        <div class="field">
+          <label class="lbl" for="assigneePhone">Their phone</label>
+          <input type="tel" id="assigneePhone" name="assigneePhone" autocomplete="tel" placeholder="(555) 555-0123">
+        </div>
+      </div>
+      <p class="hint" style="margin-top:8px">Whoever will be on site to take delivery. The rental company calls this number.</p>
+      <p class="fine" style="margin-top:10px">By providing your phone number, you agree to receive SMS text messages about your equipment rental status, including reminders and due date alerts. Msg frequency varies. Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help.</p>
+    </section>
+
+    <section class="block" aria-labelledby="h-equip">
+      <div class="block-head"><span class="n">03</span><h2 id="h-equip">Equipment</h2></div>
+      <div class="field" role="group" aria-labelledby="lbl-vendor">
+        <span class="lbl" id="lbl-vendor">Rental company</span>
+        <p class="hint">Every company you tick gets this request.</p>
+        <div class="choices">
+          <label class="choice"><input type="checkbox" name="rentalCompany" value="Rentals Unlimited"><span class="box"></span>Rentals Unlimited</label>
+          <label class="choice"><input type="checkbox" name="rentalCompany" value="Washington Air"><span class="box"></span>Washington Air</label>
+          <label class="choice"><input type="checkbox" name="rentalCompany" value="Hertz"><span class="box"></span>Hertz</label>
+          <label class="choice"><input type="checkbox" name="rentalCompany" value="H&amp;E"><span class="box"></span>H&amp;E</label>
+          <label class="choice"><input type="checkbox" name="rentalCompany" value="CAT"><span class="box"></span>CAT</label>
+          <label class="choice"><input type="checkbox" name="rentalCompany" value="United Rentals"><span class="box"></span>United Rentals</label>
+          <label class="choice"><input type="checkbox" name="rentalCompany" value="Sunbelt Rentals"><span class="box"></span>Sunbelt Rentals</label>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl" for="equipment">What do you need?</label>
+        <textarea id="equipment" name="equipment" placeholder="e.g. 60ft boom lift, 19ft scissor lift"></textarea>
+      </div>
+      <div class="row">
+        <div class="field" role="group" aria-labelledby="lbl-emerg">
+          <span class="lbl" id="lbl-emerg">Emergency?</span>
+          <div class="seg">
+            <label class="danger"><input type="radio" name="emergency" value="Yes">Yes</label>
+            <label><input type="radio" name="emergency" value="No">No</label>
+          </div>
+        </div>
+        <div class="field" role="group" aria-labelledby="lbl-clear">
+          <span class="lbl" id="lbl-clear">Clearance required?</span>
+          <div class="seg">
+            <label><input type="radio" name="clearance" value="Yes">Yes</label>
+            <label><input type="radio" name="clearance" value="No">No</label>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl" for="notes">Notes <span class="opt">(optional)</span></label>
+        <textarea id="notes" name="notes" placeholder="Gate code, where to drop it, anything the driver should know"></textarea>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="h-when">
+      <div class="block-head"><span class="n">04</span><h2 id="h-when">Dates &amp; files</h2></div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl" for="startDate">Start date</label>
+          <input type="date" id="startDate" name="startDate">
+        </div>
+        <div class="field">
+          <label class="lbl" for="endDate">End date <span class="opt">(optional)</span></label>
+          <input type="date" id="endDate" name="endDate" aria-describedby="endHint">
+        </div>
+      </div>
+      <p class="hint" id="endHint" style="margin-top:8px">No return date yet? Leave it blank and call it off rent when you're done.</p>
+      <div class="field">
+        <span class="lbl">Photos or files <span class="opt">(optional)</span></span>
+        <label class="drop" id="drop">
+          <input type="file" id="attachmentFile" name="attachment" multiple accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.csv,.jpg,.jpeg,.png,.gif,.webp,.heic,.svg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg>
+          <span><b>Tap to add photos or files</b><span class="hint">PDF, Word, Excel, JPG, PNG, HEIC</span></span>
+        </label>
+        <div class="files" id="fileList"></div>
+      </div>
+    </section>
+
+    <div class="actionbar">
+      <button type="submit" class="btn btn-go" id="submitBtn">Review request</button>
+      <div class="alert" id="formError" role="alert"></div>
+    </div>
+  </form>
+
+  <!-- Step 2: review -->
+  <div class="view" id="reviewView" hidden>
+    <article class="ticket">
+      <div class="ticket-head">
+        <div>
+          <p class="eyebrow">AI check</p>
+          <h2 id="reviewTitle" tabindex="-1">Review before sending</h2>
+        </div>
+        <span class="chip" id="urgencyBadge"></span>
+      </div>
+      <div class="ai">
+        <p class="ai-summary" id="aiSummaryText"></p>
+        <div class="facts3">
+          <div><span>Category</span><b id="equipmentCategory">—</b></div>
+          <div><span>Est. duration</span><b id="estimatedDays">—</b></div>
+          <div><span>Suggested</span><b id="recommendedAction">—</b></div>
+        </div>
+      </div>
+      <div class="ticket-body">
+        <dl class="dl" id="reviewFields"></dl>
+      </div>
+    </article>
+    <p class="hint" style="margin-top:12px">Nothing has been sent yet. The rental company only hears about it when you confirm.</p>
+    <div class="actionbar">
+      <div class="pair">
+        <button type="button" class="btn btn-quiet" id="editBtn">Edit</button>
+        <button type="button" class="btn btn-go" id="confirmBtn">Confirm &amp; send</button>
+      </div>
+      <div class="alert" id="confirmError" role="alert"></div>
+    </div>
+  </div>
+
+  <!-- Step 3: sent -->
+  <div class="view" id="successView" hidden>
+    <div class="done">
+      <div class="done-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <h2 id="doneTitle" tabindex="-1">Request sent</h2>
+      <p>It's saved, and the rental company has been notified.</p>
+      <ol class="next">
+        <li><span>01</span>The rental company you picked gets the request by text and email.</li>
+        <li><span>02</span>They call the on-site contact to set up delivery.</li>
+        <li><span>03</span>It shows up in the superintendent's Monday summary until it's called off rent.</li>
+      </ol>
+      <button type="button" class="btn btn-quiet" id="newRequestBtn">Order something else</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span>SiteMind</span>
+  <a href="../privacy.html">Privacy</a>
+  <a href="../terms.html">Terms</a>
+  <a href="../opt-in.html">SMS opt-in</a>
+</footer>
+
+<script>
+  const API = 'https://mediumvioletred-trout-986017.hostingersite.com/webhook/';
+  const WEBHOOK_STEP1 = API + 'prospect-job-request';
+  const WEBHOOK_STEP2 = API + 'prospect-job-confirm';
+  const SUPERS_URL    = API + 'prospect-supers';
+
+  const $ = id => document.getElementById(id);
+  const form = $('formView'), submitBtn = $('submitBtn'), formError = $('formError');
+  const confirmBtn = $('confirmBtn'), confirmError = $('confirmError');
+  const fileInput = $('attachmentFile'), drop = $('drop'), fileListEl = $('fileList');
+  const views = [form, $('reviewView'), $('successView')];
+
+  let selectedFiles = [];
+  let confirmedData = null;
+
+  // step: 0 details, 1 review, 2 sent
+  function show(step, focusId) {
+    views.forEach((v, i) => { v.hidden = i !== step; });
+    document.querySelectorAll('.steps li').forEach((li, i) => {
+      li.classList.toggle('past', i < step);
+      if (i === step) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (focusId) $(focusId).focus({ preventScroll: true });
+  }
+
+  function busy(btn, text) { btn.disabled = true; btn.innerHTML = '<span class="spin" aria-hidden="true"></span>' + text; }
+  function idle(btn, text) { btn.disabled = false; btn.textContent = text; }
+  function fail(el, text) { el.textContent = text; el.style.display = 'block'; }
+
+  function formatBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(1) + ' MB';
+  }
+
+  function renderFileList() {
+    fileListEl.replaceChildren(...selectedFiles.map((file, i) => {
+      const row = document.createElement('div');
+      row.className = 'file';
+      row.innerHTML = '<span class="name"></span><span class="size"></span>' +
+        '<button type="button" aria-label="Remove file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
+      row.querySelector('.name').textContent = file.name;
+      row.querySelector('.size').textContent = formatBytes(file.size);
+      row.querySelector('button').onclick = () => { selectedFiles.splice(i, 1); renderFileList(); };
+      return row;
+    }));
+  }
+
+  function addFiles(newFiles) {
+    Array.from(newFiles).forEach(f => {
+      if (!selectedFiles.find(x => x.name === f.name && x.size === f.size)) selectedFiles.push(f);
+    });
+    renderFileList();
+  }
+
+  fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value = ''; });
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); addFiles(e.dataTransfer.files); });
+
+  // Superintendent list is served from Airtable so office staff can add or
+  // retire a super without anyone touching this page. If the call fails the
+  // select degrades to a plain text box rather than blocking the request.
+  const superSelect = $('superintendent');
+
+  function superFallback(message) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'superintendent';
+    input.name = 'superintendent';
+    input.placeholder = 'Type the superintendent’s name';
+    superSelect.replaceWith(input);
+    const hint = input.parentElement.querySelector('.hint');
+    if (hint && message) hint.textContent = message;
+  }
+
+  (async () => {
+    try {
+      const res = await fetch(SUPERS_URL, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const { supers } = await res.json();
+      if (!Array.isArray(supers) || !supers.length) throw new Error('empty list');
+
+      superSelect.innerHTML = '<option value="" disabled selected>Select a superintendent</option>';
+      for (const name of supers) {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        superSelect.appendChild(opt);
+      }
+    } catch (err) {
+      superFallback('Could not load the superintendent list — type the name instead.');
+    }
+  })();
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    formError.style.display = 'none';
+
+    const code = $('accessCode');
+    if (!code.value.trim()) {
+      fail(formError, 'Enter the access code to continue.');
+      code.focus();
+      return;
+    }
+
+    busy(submitBtn, 'Checking your request…');
+
+    const fd = new FormData(form);
+    const payload = {};
+    fd.forEach((v, k) => {
+      if (k === 'attachment') return;
+      if (k === 'rentalCompany') {
+        payload[k] = payload[k] ? payload[k] + ', ' + v : v;
+      } else {
+        payload[k] = v;
+      }
+    });
+
+    if (selectedFiles.length > 0) {
+      payload.attachmentLink = selectedFiles.map(f => f.name).join(', ');
+    }
+
+    try {
+      const res = await fetch(WEBHOOK_STEP1, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('Server error ' + res.status);
+
+      const result = await res.json();
+      const data = result.data || result;
+      confirmedData = data;
+      showReview(data);
+    } catch (err) {
+      fail(formError, 'Could not reach the server. Check your connection and try again.');
+    } finally {
+      idle(submitBtn, 'Review request');
+    }
+  });
+
+  function showReview(data) {
+    const badge = $('urgencyBadge');
+    const isEmergency = (data.urgency || '').toLowerCase() === 'emergency'
+      || (data.emergency || '').toLowerCase() === 'yes';
+    badge.className = 'chip ' + (isEmergency ? 'red' : 'green');
+    badge.textContent = isEmergency ? 'Emergency' : 'Standard';
+
+    $('aiSummaryText').textContent = data.aiSummary || '—';
+    $('equipmentCategory').textContent = data.equipmentCategory || '—';
+    const days = data.estimatedDays;
+    $('estimatedDays').textContent = days ? days + (days === 1 ? ' day' : ' days') : '—';
+    const actionMap = { quote_all: 'Quote all', quote_vendor: 'Quote vendor', direct_order: 'Direct order' };
+    $('recommendedAction').textContent = actionMap[data.recommendedAction] || data.recommendedAction || '—';
+
+    const fields = [
+      ['Job number',      data.jobNumber],
+      ['Job name',        data.jobName],
+      ['Address',         data.jobAddress],
+      ['Superintendent',  data.superintendent],
+      ['On-site contact', data.assigneeName],
+      ['Phone',           data.assigneePhone],
+      ['Rental company',  data.rentalCompany],
+      ['Equipment',       data.equipment],
+      ['Emergency',       data.emergency],
+      ['Clearance',       data.clearance],
+      ['Start date',      data.startDate],
+      ['End date',        data.endDate],
+      ['Notes',           data.notes],
+      ['Files',           data.attachmentLink],
+    ];
+
+    const dl = $('reviewFields');
+    dl.replaceChildren();
+    fields.forEach(([label, value]) => {
+      if (!value && value !== 0) return;
+      const dt = document.createElement('dt');
+      const dd = document.createElement('dd');
+      dt.textContent = label;
+      dd.textContent = String(value);
+      dl.append(dt, dd);
+    });
+
+    show(1, 'reviewTitle');
+  }
+
+  $('editBtn').addEventListener('click', () => {
+    confirmError.style.display = 'none';
+    show(0);
+  });
+
+  confirmBtn.addEventListener('click', async () => {
+    confirmError.style.display = 'none';
+    busy(confirmBtn, 'Sending…');
+    try {
+      const res = await fetch(WEBHOOK_STEP2, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(confirmedData)
+      });
+      if (!res.ok) throw new Error('Server error ' + res.status);
+      show(2, 'doneTitle');
+    } catch (err) {
+      fail(confirmError, 'Could not confirm. Please try again.');
+    } finally {
+      idle(confirmBtn, 'Confirm & send');
+    }
+  });
+
+  $('newRequestBtn').addEventListener('click', () => {
+    form.reset();
+    selectedFiles = [];
+    renderFileList();
+    confirmedData = null;
+    formError.style.display = 'none';
+    show(0);
+  });
+</script>
+</body>
+</html>

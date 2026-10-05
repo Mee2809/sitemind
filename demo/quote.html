@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Get a Quote — SiteMind</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* Shared by request.html, manage.html and quote.html — keep the three copies identical. */
+  :root {
+    color-scheme: light dark;
+    --paper: #f2f0ea;
+    --surface: #ffffff;
+    --text: #1b1d1f;
+    --muted: #55595e;
+    --line: #dcd8cd;
+    --line-strong: #b5af9f;
+    --ink: #0f1113;
+    --hivis: #ffc21a;
+    --focus: #1b1d1f;
+    --red: #b42318;   --red-bg: #fbeae8;
+    --green: #1d6f37; --green-bg: #e5f2e9;
+    --blue: #1d5fa8;  --blue-bg: #e7eff9;
+    --amber: #8a5300; --amber-bg: #fcefd2;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0f1113;
+      --surface: #171a1d;
+      --text: #edece8;
+      --muted: #a3a9b0;
+      --line: #2a2f35;
+      --line-strong: #3d434a;
+      --focus: #ffc21a;
+      --red: #ff8a7f;   --red-bg: rgba(255,107,94,.13);
+      --green: #5ee08f; --green-bg: rgba(74,222,128,.12);
+      --blue: #8cbcff;  --blue-bg: rgba(127,179,255,.12);
+      --amber: #ffc21a; --amber-bg: rgba(255,194,26,.12);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--text);
+    font: 400 16px/1.5 "Archivo", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+  /* ── top bar + tool tabs ── */
+  .topbar { background: var(--ink); color: #edece8; }
+  .topbar .in { max-width: 720px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-stretch: 85%; font-size: 19px; text-decoration: none; }
+  .mark { width: 22px; height: 22px; background: var(--hivis); clip-path: polygon(0 100%, 50% 0, 100% 100%, 72% 100%, 50% 45%, 28% 100%); }
+  .client { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #a3a9b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tabs { position: sticky; top: 0; z-index: 5; background: var(--ink); border-top: 1px solid #2a2f35; }
+  .tabs .in { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); }
+  .tabs a { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; color: #a3a9b0; text-decoration: none; font-weight: 600; font-size: 15px; border-bottom: 3px solid transparent; transition: color .15s, border-color .15s; }
+  .tabs a:hover { color: #fff; }
+  .tabs a[aria-current="page"] { color: #fff; border-bottom-color: var(--hivis); }
+  .tabs svg { width: 18px; height: 18px; flex: none; }
+  .tabs a:focus-visible { outline-color: var(--hivis); outline-offset: -3px; }
+
+  /* ── page head ── */
+  .page { max-width: 720px; margin: 0 auto; padding: 28px 16px 40px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: clamp(38px, 9vw, 56px); font-weight: 800; font-stretch: 76%; text-transform: uppercase; line-height: .96; letter-spacing: -.01em; margin: 8px 0 12px; }
+  .lede { color: var(--muted); font-size: 17px; max-width: 54ch; }
+
+  /* ── progress ── */
+  .steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 26px 0 6px; }
+  .steps li { border-top: 4px solid var(--line); padding-top: 8px; font-size: 14px; font-weight: 600; color: var(--muted); transition: border-color .25s, color .25s; }
+  .steps li span { font-family: var(--mono); font-size: 12px; margin-right: 6px; }
+  .steps li.past { border-color: var(--text); color: var(--text); }
+  .steps li[aria-current="step"] { border-color: var(--hivis); color: var(--text); }
+
+  /* ── form blocks ── */
+  .view { animation: rise .28s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+  .block { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 22px 20px 24px; margin-top: 14px; }
+  .block-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; }
+  .block-head .n { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .block-head h2 { font-size: 22px; font-weight: 800; font-stretch: 80%; text-transform: uppercase; letter-spacing: .01em; line-height: 1.1; }
+  .block-head p { margin-left: auto; font-size: 13px; color: var(--muted); }
+
+  .field { display: grid; gap: 7px; }
+  .field + .field, .field + .row, .row + .field, .row + .row, .block > p + .field, .block > p + .row { margin-top: 20px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .lbl { font-weight: 600; font-size: 15px; }
+  .opt { font-weight: 400; color: var(--muted); }
+  .hint { font-size: 14px; color: var(--muted); line-height: 1.45; }
+  .fine { font-size: 13px; color: var(--muted); line-height: 1.45; }
+
+  input[type="text"], input[type="tel"], input[type="email"], input[type="date"], select, textarea {
+    display: block; width: 100%; min-height: 52px; padding: 12px 14px;
+    font: inherit; font-size: 16px; color: var(--text);
+    background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: 6px;
+    -webkit-appearance: none; appearance: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input::placeholder, textarea::placeholder { color: var(--muted); opacity: .75; }
+  input:hover, select:hover, textarea:hover { border-color: var(--muted); }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--text); box-shadow: 0 0 0 3px var(--hivis); }
+  input:user-invalid, select:user-invalid { border-color: var(--red); }
+  input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+  textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
+  select { padding-right: 42px; cursor: pointer; background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2355595e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center; }
+
+  /* choice tiles (checkboxes) */
+  .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .choice { position: relative; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 10px 14px; background: var(--surface); border: 1.5px solid var(--line-strong); border-radius: 6px; font-weight: 600; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: border-color .15s, background .15s; }
+  .choice:hover { border-color: var(--muted); }
+  .choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .box { flex: none; width: 22px; height: 22px; border: 2px solid var(--line-strong); border-radius: 4px; display: grid; place-items: center; transition: background .15s, border-color .15s; }
+  .box::after { content: ""; width: 6px; height: 11px; margin-top: -2px; border: solid #111; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg) scale(.3); opacity: 0; transition: transform .15s, opacity .15s; }
+  .choice:has(input:checked) { border-color: var(--text); background: color-mix(in srgb, var(--hivis) 16%, var(--surface)); }
+  .choice:has(input:checked) .box { background: var(--hivis); border-color: var(--hivis); }
+  .choice:has(input:checked) .box::after { transform: rotate(45deg) scale(1); opacity: 1; }
+  .choice:has(input:focus-visible) { border-color: var(--text); box-shadow: 0 0 0 3px var(--hivis); }
+  .choice.all { grid-column: 1 / -1; border-style: dashed; }
+
+  /* yes / no segmented control */
+  .seg { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--line-strong); border-radius: 6px; overflow: hidden; background: var(--surface); }
+  .seg label { position: relative; min-height: 52px; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background .15s, color .15s; }
+  .seg label + label { border-left: 1.5px solid var(--line-strong); }
+  .seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .seg label:has(:checked) { background: var(--text); color: var(--surface); }
+  .seg label.danger:has(:checked) { background: var(--red); color: #fff; }
+  .seg label:has(:focus-visible) { box-shadow: inset 0 0 0 3px var(--hivis); }
+
+  /* ── buttons ── */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; padding: 0 22px; border: 0; border-radius: 6px; font: 700 17px/1 "Archivo", system-ui, sans-serif; cursor: pointer; text-decoration: none; transition: background .15s, transform .1s, opacity .15s; }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .btn-go { background: var(--hivis); color: #111; box-shadow: inset 0 -3px 0 rgba(0,0,0,.16); }
+  .btn-go:hover { background: #ffd04d; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-quiet { background: transparent; color: var(--text); border: 1.5px solid var(--line-strong); }
+  .btn-quiet:hover { border-color: var(--text); }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+  .spin { width: 18px; height: 18px; border: 2.5px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .actionbar { position: sticky; bottom: 0; z-index: 4; margin-top: 18px; padding: 14px 0 max(14px, env(safe-area-inset-bottom)); background: linear-gradient(to bottom, transparent, var(--paper) 28%); }
+  .pair { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+
+  .alert { display: none; margin-top: 12px; padding: 12px 14px; border-left: 4px solid var(--red); border-radius: 4px; background: var(--red-bg); color: var(--red); font-weight: 600; font-size: 15px; }
+  .alert.warn { border-color: var(--amber); background: var(--amber-bg); color: var(--amber); }
+
+  /* ── review ticket ── */
+  .ticket { margin-top: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .ticket-head { background: var(--ink); color: #edece8; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+  .ticket-head .eyebrow { color: #a3a9b0; }
+  .ticket-head h2 { font-size: 24px; font-weight: 800; font-stretch: 80%; text-transform: uppercase; line-height: 1.1; margin-top: 2px; }
+  .ticket-body { padding: 4px 20px 8px; }
+  .dl { display: grid; grid-template-columns: minmax(110px, 34%) 1fr; }
+  .dl dt, .dl dd { padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .dl dt { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-top: 14px; padding-right: 12px; }
+  .dl dd { font-weight: 500; overflow-wrap: anywhere; white-space: pre-line; }
+  .dl dt:nth-last-of-type(1), .dl dd:last-child { border-bottom: 0; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; padding: 5px 11px; border-radius: 99px; white-space: nowrap; }
+  .chip::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .chip.red { background: var(--red-bg); color: var(--red); }
+  .chip.green { background: var(--green-bg); color: var(--green); }
+  .ticket-head .chip.red { background: #ff6b5e; color: #111; }
+  .ticket-head .chip.green { background: #4ade80; color: #111; }
+
+  /* ── done ── */
+  .done { margin-top: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 28px 22px; }
+  .done-icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--green-bg); color: var(--green); }
+  .done-icon svg { width: 28px; height: 28px; }
+  .done h2 { font-size: 34px; font-weight: 800; font-stretch: 78%; text-transform: uppercase; line-height: 1; margin: 18px 0 10px; }
+  .done > p { color: var(--muted); font-size: 17px; }
+  .next { list-style: none; margin: 22px 0 26px; border-top: 1px solid var(--line); }
+  .next li { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .next li span { font-family: var(--mono); font-size: 12px; color: var(--muted); padding-top: 3px; }
+
+  footer { max-width: 720px; margin: 0 auto; padding: 20px 16px 40px; display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; color: var(--muted); }
+  footer a { color: var(--muted); }
+
+  @media (max-width: 600px) {
+    .page { padding-top: 22px; }
+    .block { padding: 18px 16px 20px; }
+    .block-head p { display: none; }
+    .row { grid-template-columns: 1fr; }
+    .ticket-body { padding: 4px 16px 8px; }
+    .dl { grid-template-columns: 1fr; }
+    .dl dt { border-bottom: 0; padding: 12px 0 0; }
+    .dl dd { padding-top: 2px; }
+  }
+  @media (max-width: 340px) {
+    .choices { grid-template-columns: 1fr; }
+    .client { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  /* ── page-specific ── */
+
+  .count { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .note { margin-top: 18px; padding: 12px 14px; border-left: 4px solid var(--amber); border-radius: 4px; background: var(--amber-bg); color: var(--amber); font-weight: 600; font-size: 15px; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="in">
+    <a class="brand" href="request.html"><span class="mark" aria-hidden="true"></span>SiteMind</a>
+    <span class="client">Prospect Waterproofing</span>
+  </div>
+</header>
+<nav class="tabs" aria-label="Tools">
+  <div class="in">
+    <a href="request.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Request</a>
+    <a href="manage.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Manage</a>
+    <a href="quote.html" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Quote</a>
+  </div>
+</nav>
+
+<main class="page">
+  <p class="eyebrow">Quote request</p>
+  <h1>Shop a quote</h1>
+  <p class="lede">Send one request to several rental companies at once. Their prices come back to your email.</p>
+
+  <form class="view" id="formView" novalidate>
+    <section class="block">
+      <div class="field">
+        <label class="lbl" for="accessCode">Access code</label>
+        <input type="text" id="accessCode" name="accessCode" required autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="h-job">
+      <div class="block-head"><span class="n">01</span><h2 id="h-job">Job</h2></div>
+      <div class="field">
+        <label class="lbl" for="jobName">Job name</label>
+        <input type="text" id="jobName" name="jobName" required placeholder="e.g. Riverside Plaza">
+      </div>
+      <div class="field">
+        <label class="lbl" for="jobAddress">Job address</label>
+        <input type="text" id="jobAddress" name="jobAddress" required autocomplete="street-address" placeholder="Street, city">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl" for="startDate">Start date <span class="opt">(optional)</span></label>
+          <input type="date" id="startDate" name="startDate">
+        </div>
+        <div class="field">
+          <label class="lbl" for="endDate">End date <span class="opt">(optional)</span></label>
+          <input type="date" id="endDate" name="endDate">
+        </div>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="h-you">
+      <div class="block-head"><span class="n">02</span><h2 id="h-you">Where to reply</h2></div>
+      <div class="row">
+        <div class="field">
+          <label class="lbl" for="senderEmail">Your email</label>
+          <input type="email" id="senderEmail" name="senderEmail" required autocomplete="email" placeholder="you@company.com">
+        </div>
+        <div class="field">
+          <label class="lbl" for="senderPhone">Your phone</label>
+          <input type="tel" id="senderPhone" name="senderPhone" required autocomplete="tel" placeholder="(555) 555-0123">
+        </div>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="h-vendors">
+      <div class="block-head"><span class="n">03</span><h2 id="h-vendors">Rental companies</h2><span class="count" id="vendorCount" aria-live="polite">0 selected</span></div>
+      <div class="choices" id="rentalCompanyGroup" role="group" aria-labelledby="h-vendors">
+        <label class="choice all"><input type="checkbox" id="checkAll"><span class="box"></span>All rental companies</label>
+        <label class="choice"><input type="checkbox" name="rentalCompany" value="Rentals Unlimited"><span class="box"></span>Rentals Unlimited</label>
+        <label class="choice"><input type="checkbox" name="rentalCompany" value="Washington Air"><span class="box"></span>Washington Air</label>
+        <label class="choice"><input type="checkbox" name="rentalCompany" value="Hertz"><span class="box"></span>Hertz</label>
+        <label class="choice"><input type="checkbox" name="rentalCompany" value="H&amp;E"><span class="box"></span>H&amp;E</label>
+        <label class="choice"><input type="checkbox" name="rentalCompany" value="CAT"><span class="box"></span>CAT</label>
+        <label class="choice"><input type="checkbox" name="rentalCompany" value="United Rentals"><span class="box"></span>United Rentals</label>
+        <label class="choice"><input type="checkbox" name="rentalCompany" value="Sunbelt Rentals"><span class="box"></span>Sunbelt Rentals</label>
+      </div>
+    </section>
+
+    <div class="actionbar">
+      <button type="submit" class="btn btn-go" id="submitBtn">Send quote request</button>
+      <div class="alert" id="formError" role="alert"></div>
+    </div>
+  </form>
+
+  <div class="view" id="successView" hidden>
+    <div class="done">
+      <div class="done-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <h2 id="successTitle" tabindex="-1">Quote request sent</h2>
+      <p id="successSubtitle">The selected rental companies have been emailed. Watch your inbox for their replies.</p>
+      <p class="note" id="successNote" hidden></p>
+      <button type="button" class="btn btn-quiet" id="newRequestBtn" style="margin-top:24px">Send another request</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span>SiteMind</span>
+  <a href="../privacy.html">Privacy</a>
+  <a href="../terms.html">Terms</a>
+  <a href="../opt-in.html">SMS opt-in</a>
+</footer>
+
+<script>
+  const API = 'https://mediumvioletred-trout-986017.hostingersite.com/webhook/';
+  const WEBHOOK_URL = API + 'prospect-quote-request';
+
+  const $ = id => document.getElementById(id);
+  const form = $('formView'), submitBtn = $('submitBtn'), formError = $('formError');
+  const successView = $('successView'), successSubtitle = $('successSubtitle'), successNote = $('successNote');
+  const checkAll = $('checkAll');
+  const vendorBoxes = () => [...document.querySelectorAll('#rentalCompanyGroup input[name="rentalCompany"]')];
+
+  function updateCount() {
+    const n = vendorBoxes().filter(cb => cb.checked).length;
+    $('vendorCount').textContent = n + ' selected';
+  }
+
+  checkAll.addEventListener('change', () => {
+    vendorBoxes().forEach(cb => { cb.checked = checkAll.checked; });
+    updateCount();
+  });
+
+  $('rentalCompanyGroup').addEventListener('change', (e) => {
+    if (e.target === checkAll) return;
+    checkAll.checked = vendorBoxes().every(cb => cb.checked);
+    updateCount();
+  });
+
+  function show(done) {
+    form.hidden = done;
+    successView.hidden = !done;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (done) $('successTitle').focus({ preventScroll: true });
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    formError.style.display = 'none';
+
+    const missing = [...form.querySelectorAll('[required]')].find(el => !el.value.trim() || !el.checkValidity());
+    if (missing) {
+      const name = form.querySelector(`label[for="${missing.id}"]`).textContent.trim().toLowerCase();
+      formError.textContent = missing.value.trim() ? `Check ${name}.` : `Enter ${name} to continue.`;
+      formError.style.display = 'block';
+      missing.focus();
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spin" aria-hidden="true"></span>Sending…';
+
+    const fd = new FormData(form);
+    const payload = {};
+    fd.forEach((v, k) => {
+      if (k === 'rentalCompany') {
+        payload[k] = payload[k] ? payload[k] + ', ' + v : v;
+      } else {
+        payload[k] = v;
+      }
+    });
+
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('Server error ' + res.status);
+
+      const result = await res.json();
+
+      successSubtitle.textContent = result.emailedCount > 0
+        ? `Sent to ${result.emailedCount} rental compan${result.emailedCount === 1 ? 'y' : 'ies'}. Watch your inbox for their replies.`
+        : 'No rental companies were emailed.';
+
+      successNote.hidden = !(result.missingEmail && result.missingEmail.length);
+      if (!successNote.hidden) {
+        successNote.textContent = `${result.missingEmail.join(', ')} ${result.missingEmail.length === 1 ? "doesn't" : "don't"} have an email on file yet. Add it in Airtable to include them next time.`;
+      }
+
+      show(true);
+    } catch (err) {
+      formError.textContent = 'Could not reach the server. Check your connection and try again.';
+      formError.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send quote request';
+    }
+  });
+
+  $('newRequestBtn').addEventListener('click', () => {
+    form.reset();
+    updateCount();
+    formError.style.display = 'none';
+    show(false);
+  });
+</script>
+</body>
+</html>

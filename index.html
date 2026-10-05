@@ -2,172 +2,754 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SiteMind — Equipment Rental Tracking for Contractors</title>
-<meta name="description" content="SiteMind helps construction companies track active equipment rentals and automatically reminds field teams before rental periods end.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SiteMind | Stop paying for lifts nobody's using</title>
+<meta name="description" content="SiteMind tracks every rented lift, scissor and swing stage across your jobs. Crews order from their phone, the rental company gets the request, and every Monday each superintendent sees what's still on rent.">
+<meta property="og:title" content="SiteMind | Stop paying for lifts nobody's using">
+<meta property="og:description" content="Rental control for specialty contractors. Built by the person who ran rentals for a 60-site waterproofing contractor.">
+<meta name="theme-color" content="#ffc21a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23121212'/%3E%3Cpath d='M7 25 16 7l9 18h-5l-4-8-4 8z' fill='%23ffc21a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&family=Permanent+Marker&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js')</script>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #1a1a2e;
-    background: #ffffff;
-    line-height: 1.6;
+  :root {
+    color-scheme: light;
+    --yellow: #ffc21a;
+    --ink: #121212;
+    --ink-2: #1c1c1b;
+    --paper: #eeeae0;
+    --paper-line: #cfc8b8;
+    --on-paper-muted: #57544c;
+    --on-ink-muted: #aaa69c;
+    --marker: #d3251c;
+    --green: #1e7b3c;
+    --display: "Big Shoulders Display", Impact, "Arial Narrow", sans-serif;
+    --body: "Archivo", system-ui, -apple-system, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    --hand: "Permanent Marker", "Comic Sans MS", cursive;
   }
-  header {
-    padding: 24px 5%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--paper); color: var(--ink); font: 400 17px/1.55 var(--body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: inherit; }
+  svg { display: block; }
+  :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .ink :focus-visible, .theater :focus-visible, footer :focus-visible, header.dark :focus-visible { outline-color: var(--yellow); }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  h1, h2, h3 { font-family: var(--display); text-transform: uppercase; line-height: .9; letter-spacing: .005em; }
+  h2 { font-size: clamp(44px, 6vw, 84px); font-weight: 900; }
+  .label { font-family: var(--mono); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+  .ink { background: var(--ink); color: #f1eee6; }
+
+  .btn { display: inline-flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 26px; border-radius: 4px; font: 700 17px/1 var(--body); text-decoration: none; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
+  .btn svg { width: 18px; height: 18px; transition: transform .2s ease; }
+  .btn:hover svg { transform: translateX(4px); }
+  .btn-ink { background: var(--ink); color: var(--yellow); box-shadow: 4px 4px 0 rgba(18,18,18,.25); }
+  .btn-ink:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 rgba(18,18,18,.3); }
+  .btn-yellow { background: var(--yellow); color: var(--ink); box-shadow: 4px 4px 0 rgba(255,194,26,.25); }
+  .btn-yellow:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 rgba(255,194,26,.35); }
+  .link { font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+
+  /* grain so flat color reads like print, not a screen */
+  .grain { position: relative; isolation: isolate; }
+  .grain::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .14; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+
+  /* ── nav ── */
+  header { position: sticky; top: 0; z-index: 20; background: var(--yellow); transition: background .25s, color .25s, box-shadow .25s; }
+  header.dark { background: var(--ink); color: #f1eee6; box-shadow: 0 1px 0 #2a2a27; }
+  header .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 20px; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; font: 900 28px/1 var(--display); text-transform: uppercase; letter-spacing: .02em; }
+  .logo-mark { width: 30px; height: 30px; border-radius: 5px; background: var(--ink); display: grid; place-items: center; transition: background .25s; }
+  .logo-mark svg { width: 18px; height: 18px; fill: var(--yellow); transition: fill .25s; }
+  header.dark .logo-mark { background: var(--yellow); }
+  header.dark .logo-mark svg { fill: var(--ink); }
+  nav { display: flex; align-items: center; gap: 30px; }
+  nav a.nl { font-weight: 600; font-size: 15px; text-decoration: none; opacity: .8; }
+  nav a.nl:hover { opacity: 1; text-decoration: underline; text-underline-offset: 5px; }
+  nav .btn { min-height: 46px; padding: 0 18px; font-size: 15px; box-shadow: none; }
+  header.dark nav .btn { background: var(--yellow); color: var(--ink); }
+
+  /* ── hero ── */
+  .hero { background: var(--yellow); padding: 56px 0 0; }
+  .hero-top { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, .65fr); gap: 48px; align-items: end; }
+  .kicker { display: inline-flex; align-items: center; gap: 10px; }
+  .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--marker); box-shadow: 0 0 0 0 rgba(211,37,28,.6); animation: pulse 1.8s infinite; }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(211,37,28,0); } 100% { box-shadow: 0 0 0 0 rgba(211,37,28,0); } }
+  .hero h1 { font-size: clamp(48px, 9.4vw, 112px); font-weight: 900; margin-top: 18px; }
+  .scrawl { position: relative; white-space: nowrap; }
+  .scrawl svg { position: absolute; left: -2%; bottom: -.1em; width: 104%; height: .2em; overflow: visible; }
+  .scrawl path { fill: none; stroke: var(--marker); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 900; stroke-dashoffset: 900; animation: draw 1.1s .5s cubic-bezier(.6,.1,.3,1) forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .hero-side p { font-size: 19px; line-height: 1.5; }
+  .hero-ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 26px; margin-top: 26px; }
+  .built { margin-top: 30px; display: flex; gap: 12px; align-items: flex-start; font-size: 15px; border-top: 2px solid var(--ink); padding-top: 14px; }
+  .built b { font-family: var(--hand); font-weight: 400; font-size: 19px; line-height: 1.1; white-space: nowrap; }
+
+  /* ── demo theater ── */
+  .theater { background: linear-gradient(to bottom, var(--yellow) 0 34%, var(--ink) 34%); padding: 64px 0 88px; }
+  .stage { background: var(--ink-2); color: #f1eee6; border-radius: 14px; border: 1px solid #2a2a27; box-shadow: 0 30px 80px rgba(0,0,0,.35); padding: 34px 34px 0; overflow: hidden; }
+  .stage-inner { display: grid; grid-template-columns: 300px 1fr; gap: 44px; align-items: center; }
+  .who-label { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--yellow); margin-bottom: 12px; min-height: 1.2em; }
+
+  .phone { width: 300px; height: 600px; background: #050505; border-radius: 46px; padding: 12px; box-shadow: 0 0 0 2px #3a3a36, 0 24px 60px rgba(0,0,0,.5); }
+  .screen { position: relative; height: 100%; background: #f5f4f0; border-radius: 35px; overflow: hidden; color: #141414; font-size: 13.5px; line-height: 1.4; }
+  .sbar { display: flex; justify-content: space-between; padding: 12px 22px 0; font-size: 12px; font-weight: 700; }
+  .notch { position: absolute; top: 8px; left: 50%; width: 90px; height: 24px; margin-left: -45px; background: #050505; border-radius: 14px; }
+  .scene { position: absolute; inset: 40px 0 0; padding: 12px 16px; opacity: 0; transform: translateX(18px); transition: opacity .4s ease, transform .4s ease; }
+  .stage[data-scene="1"] .s1, .stage[data-scene="2"] .s2, .stage[data-scene="3"] .s3, .stage[data-scene="4"] .s4 { opacity: 1; transform: none; }
+  .app-bar { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #e0ddd4; }
+  .app-bar i { width: 18px; height: 18px; border-radius: 4px; background: #121212; display: grid; place-items: center; }
+  .app-bar i::after { content: ""; width: 9px; height: 8px; background: var(--yellow); clip-path: polygon(0 100%, 50% 0, 100% 100%); }
+  .f { margin-bottom: 10px; }
+  .f label { display: block; font-size: 11px; font-weight: 700; color: #6b675e; margin-bottom: 3px; }
+  .fld { height: 34px; border: 1.5px solid #cfcabd; border-radius: 6px; background: #fff; padding: 7px 10px; font-weight: 500; white-space: nowrap; overflow: hidden; }
+  .type { display: inline-block; clip-path: inset(0 100% 0 0); }
+  .stage[data-scene="1"] .type { animation: type .7s steps(var(--n)) var(--d) forwards; }
+  @keyframes type { to { clip-path: inset(0 0 0 0); } }
+  .chips { display: flex; gap: 6px; }
+  .opt { padding: 6px 10px; border: 1.5px solid #cfcabd; border-radius: 6px; background: #fff; font-weight: 600; font-size: 12.5px; }
+  .stage[data-scene="1"] .opt.pick { animation: pick .2s var(--d) forwards; }
+  @keyframes pick { to { background: #ffe9a8; border-color: #121212; } }
+  .p-btn { position: relative; margin-top: 14px; height: 42px; border-radius: 6px; background: var(--yellow); display: grid; place-items: center; font-weight: 700; box-shadow: inset 0 -3px 0 rgba(0,0,0,.15); }
+  .tap::after { content: ""; position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -20px; border-radius: 50%; background: rgba(18,18,18,.35); opacity: 0; }
+  .stage[data-scene="1"] .s1 .tap::after, .stage[data-scene="2"] .s2 .tap::after { animation: tap .6s var(--d) ease-out; }
+  @keyframes tap { 0% { opacity: 1; transform: scale(.3); } 100% { opacity: 0; transform: scale(2.2); } }
+  .ai { background: #fff; border: 1px solid #e0ddd4; border-radius: 10px; padding: 12px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: #def0e2; color: var(--green); }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .ai p { margin: 8px 0 10px; }
+  .ai dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 12px; border-top: 1px dashed #d8d4c8; padding-top: 8px; }
+  .ai dt { color: #6b675e; }
+  .ai dd { font-weight: 600; }
+  .hint { font-size: 11.5px; color: #6b675e; margin-top: 10px; }
+  .confirm .b { display: none; align-items: center; gap: 6px; }
+  .confirm .b svg { width: 16px; height: 16px; }
+  .confirm.done { background: var(--green); color: #fff; }
+  .confirm.done .a { display: none; }
+  .confirm.done .b { display: inline-flex; }
+  .msg-head { text-align: center; padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px solid #e0ddd4; }
+  .avatar { width: 38px; height: 38px; margin: 0 auto 4px; border-radius: 50%; background: #121212; display: grid; place-items: center; }
+  .avatar::after { content: ""; width: 16px; height: 14px; background: var(--yellow); clip-path: polygon(0 100%, 50% 0, 100% 100%); }
+  .msg-head b { display: block; font-size: 13px; }
+  .msg-head span { font-size: 11px; color: #7a766c; }
+  .bubble { background: #e6e5e0; border-radius: 16px; border-bottom-left-radius: 4px; padding: 9px 12px; max-width: 94%; font-size: 13px; margin-bottom: 8px; opacity: 0; transform: translateY(10px) scale(.97); transform-origin: bottom left; }
+  .stage[data-scene="3"] .s3 .bubble, .stage[data-scene="4"] .s4 .bubble { animation: pop .35s var(--d) cubic-bezier(.2,.9,.3,1.2) forwards; }
+  @keyframes pop { to { opacity: 1; transform: none; } }
+  .bubble .flag { color: var(--marker); font-weight: 700; }
+  .mailnote { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #6b675e; opacity: 0; }
+  .mailnote svg { width: 16px; height: 16px; }
+  .stage[data-scene="3"] .mailnote { animation: pop .35s 1.5s forwards; }
+
+  .office { min-width: 0; }
+  .board { background: #fbfaf6; color: #141414; border-radius: 10px; overflow: hidden; box-shadow: 0 18px 50px rgba(0,0,0,.35); }
+  .board-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #e0ddd4; }
+  .board-head b { font: 900 22px/1 var(--display); text-transform: uppercase; }
+  .board-head .label { font-size: 11px; color: #6b675e; white-space: nowrap; }
+  .later { margin-left: auto; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; background: var(--ink); color: var(--yellow); padding: 5px 9px; border-radius: 3px; white-space: nowrap; opacity: 0; transform: translateY(-4px); transition: opacity .3s, transform .3s; }
+  .stage[data-scene="4"] .later { opacity: 1; transform: none; }
+  .board table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .board th { text-align: left; font: 500 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #6b675e; padding: 10px 18px; border-bottom: 1px solid #e0ddd4; }
+  .board td { padding: 12px 18px; border-bottom: 1px solid #ece9e1; vertical-align: middle; }
+  .board tr:last-child td { border-bottom: 0; }
+  .board td small { display: block; color: #6b675e; font-size: 12px; }
+  .board td.days { font: 500 20px/1 var(--mono); width: 70px; }
+  .board tr { transition: background .4s; }
+  .board tr.fresh { animation: fresh 1.6s ease-out; }
+  @keyframes fresh { 0% { background: #ffe39a; } 100% { background: transparent; } }
+  .board tr.over td:first-child { box-shadow: inset 6px 0 0 var(--marker); }
+  .board tr.over { background: #fdecea; }
+  .board tr[hidden] { display: none; }
+  .st { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
+  .st::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .st.pending { background: #fff1c7; color: #8a5a00; }
+  .st.on { background: #def0e2; color: var(--green); }
+  .st.off { background: #ebe8e0; color: #6b675e; }
+  .st.flag { background: var(--marker); color: #fff; }
+  .caption { margin-top: 26px; font: 800 clamp(26px, 2.6vw, 36px)/1.05 var(--display); text-transform: uppercase; min-height: 2.2em; }
+  .caption span { color: var(--yellow); }
+
+  .tabs { display: grid; grid-template-columns: repeat(4, 1fr); margin: 34px -34px 0; border-top: 1px solid #2f2f2b; }
+  .tab { position: relative; background: none; border: 0; color: var(--on-ink-muted); text-align: left; padding: 18px 20px 20px; font: 600 15px/1.2 var(--body); cursor: pointer; transition: color .2s, background .2s; }
+  .tab + .tab { border-left: 1px solid #2f2f2b; }
+  .tab .label { display: block; font-size: 11px; margin-bottom: 6px; }
+  .tab:hover { color: #fff; background: #222220; }
+  .tab[aria-selected="true"] { color: #fff; }
+  .tab .bar { position: absolute; left: 0; top: -1px; height: 3px; width: 100%; background: var(--yellow); transform: scaleX(0); transform-origin: left; }
+  .tab[aria-selected="true"] .bar { animation: fill var(--dur, 4s) linear forwards; }
+  .stage.still .tab[aria-selected="true"] .bar { animation: none; transform: scaleX(1); }
+  .stage.paused .tab .bar { animation-play-state: paused; }
+  @keyframes fill { to { transform: scaleX(1); } }
+
+  /* ── caution tape ── */
+  .tape-zone { background: var(--ink); padding: 26px 0 70px; overflow: hidden; }
+  .tape { transform: rotate(-1.6deg); margin: 0 -40px; background: var(--yellow); color: var(--ink); border-block: 12px solid transparent; border-image: repeating-linear-gradient(-45deg, var(--ink) 0 14px, var(--yellow) 14px 28px) 12; overflow: hidden; }
+  .tape-track { display: flex; width: max-content; animation: slide 38s linear infinite; }
+  .tape span { font: 900 40px/1 var(--display); text-transform: uppercase; padding: 14px 0; white-space: nowrap; }
+  .tape span::after { content: "/"; margin: 0 28px; opacity: .4; }
+  @keyframes slide { to { transform: translateX(-50%); } }
+
+  /* ── problem / invoice ── */
+  section.block { padding: 120px 0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+  .problem .label { color: #8a5a00; }
+  .problem h2 { margin: 16px 0 22px; }
+  .problem .lead { font-size: 19px; color: var(--on-paper-muted); max-width: 52ch; }
+  .pains { list-style: none; margin-top: 34px; border-top: 2px solid var(--ink); }
+  .pains li { display: grid; grid-template-columns: 54px 1fr; gap: 8px; padding: 18px 0; border-bottom: 1px solid var(--paper-line); }
+  .pains li span { font: 500 13px/1.8 var(--mono); color: #8a5a00; }
+  .pains b { display: block; font-size: 18px; }
+  .pains p { color: var(--on-paper-muted); font-size: 16px; }
+
+  .invoice { position: relative; background: #fff; padding: 34px 32px 30px; transform: rotate(1.4deg); box-shadow: 0 2px 0 #ddd8cb, 0 30px 60px rgba(60,50,30,.2); font-size: 14px; }
+  .invoice::before { content: ""; position: absolute; left: 0; right: 0; top: -9px; height: 10px; background: radial-gradient(circle at 7px 10px, transparent 6px, #fff 6.5px) 0 0 / 14px 10px repeat-x; }
+  .inv-top { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 2px solid var(--ink); }
+  .inv-top b { font: 900 26px/1 var(--display); text-transform: uppercase; }
+  .inv-top p, .inv-meta { font: 500 12px/1.6 var(--mono); color: #57544c; }
+  .inv-top p { text-align: right; }
+  .inv-meta { display: flex; justify-content: space-between; padding: 12px 0; }
+  .invoice table { width: 100%; border-collapse: collapse; }
+  .invoice th { text-align: left; font: 500 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #6b675e; padding: 10px 0; border-bottom: 1px solid #ddd8cb; }
+  .invoice td { padding: 11px 0; border-bottom: 1px solid #ece9e1; vertical-align: top; }
+  .invoice td small { display: block; color: #6b675e; font-size: 12px; }
+  .invoice .r { text-align: right; font-family: var(--mono); font-size: 13px; }
+  .invoice tr.hit td:first-child { position: relative; }
+  .invoice tfoot td { border: 0; padding: 5px 0; }
+  .invoice tfoot tr:last-child td { font-weight: 700; font-size: 17px; padding-top: 12px; border-top: 2px solid var(--ink); }
+  .invoice tr.hit td { padding-bottom: 44px; }
+  .circle { position: absolute; left: -16px; top: 2px; width: calc(100% + 150px); height: 56px; overflow: visible; pointer-events: none; }
+  .circle path { fill: none; stroke: var(--marker); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1400; stroke-dashoffset: 1400; }
+  .note { position: absolute; font-family: var(--hand); color: var(--marker); line-height: 1.05; pointer-events: none; opacity: 0; }
+  .note.n1 { left: 4px; bottom: 8px; font-size: 21px; white-space: nowrap; transform: rotate(-3deg); }
+  .invoice.in .circle path { animation: draw 1s .5s ease-out forwards; }
+  .invoice.in .note { animation: show .4s forwards; }
+  .invoice.in .note.n1 { animation-delay: 1.3s; }
+  @keyframes show { to { opacity: 1; } }
+
+  /* ── meter ── */
+  .meter .label { color: var(--yellow); }
+  .meter h2 { margin: 16px 0 16px; }
+  .meter .sub { color: var(--on-ink-muted); font-size: 19px; max-width: 56ch; }
+  .meter-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 64px; margin-top: 56px; align-items: center; }
+  .dial { display: block; }
+  .dial + .dial { margin-top: 34px; }
+  .dial-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 10px; font-weight: 600; }
+  .dial output { font: 500 22px/1 var(--mono); color: var(--yellow); white-space: nowrap; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 36px; background: transparent; cursor: pointer; }
+  input[type=range]::-webkit-slider-runnable-track { height: 8px; background: linear-gradient(var(--yellow), var(--yellow)) 0 / var(--p, 50%) 100% no-repeat, #3a3a36; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; margin-top: -11px; background: var(--yellow); border: 3px solid var(--ink); border-radius: 4px; box-shadow: 0 0 0 2px var(--yellow); }
+  input[type=range]::-moz-range-track { height: 8px; background: #3a3a36; }
+  input[type=range]::-moz-range-progress { height: 8px; background: var(--yellow); }
+  input[type=range]::-moz-range-thumb { width: 24px; height: 24px; background: var(--yellow); border: 3px solid var(--ink); border-radius: 4px; }
+  input[type=range]:focus-visible { outline: 3px solid var(--yellow); outline-offset: 6px; }
+  .readout { background: var(--ink-2); border: 1px solid #2f2f2b; border-radius: 12px; padding: 36px 36px 30px; }
+  .readout .label { color: var(--on-ink-muted); }
+  .odo { display: flex; align-items: flex-end; font: 900 clamp(64px, 8.4vw, 124px)/1 var(--display); color: var(--yellow); margin: 14px 0 6px; overflow: hidden; }
+  .dg { display: inline-block; height: 1em; overflow: hidden; }
+  .dg > span { display: block; transition: transform .7s cubic-bezier(.2,.8,.2,1); }
+  .per { font-size: 19px; }
+  .per b { color: #fff; }
+  .equiv { margin-top: 22px; padding-top: 18px; border-top: 1px dashed #3a3a36; font: 500 14px/1.6 var(--mono); color: var(--on-ink-muted); }
+  .equiv b { color: #fff; font-weight: 500; }
+  .fine { margin-top: 10px; font-size: 13px; color: #8a867c; }
+
+  /* ── how: job log ── */
+  .how .label { color: #8a5a00; }
+  .how-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: 72px; align-items: start; }
+  .how-head { position: sticky; top: 120px; }
+  .how-head h2 { margin: 16px 0 22px; }
+  .how-head p:not(.label) { font-size: 19px; color: var(--on-paper-muted); margin-bottom: 30px; }
+  .log { list-style: none; position: relative; padding-left: 64px; }
+  .log::before { content: ""; position: absolute; left: 18px; top: 8px; bottom: 8px; width: 12px; background: repeating-linear-gradient(to bottom, var(--ink) 0 2px, transparent 2px 12px) left / 6px 100% no-repeat, repeating-linear-gradient(to bottom, var(--ink) 0 2px, transparent 2px 60px) left / 12px 100% no-repeat; }
+  .log li { position: relative; padding: 0 0 46px; }
+  .log li::before { content: ""; position: absolute; left: -54px; top: 4px; width: 20px; height: 20px; border-radius: 4px; background: var(--paper); border: 3px solid var(--ink); transition: background .3s, transform .3s; }
+  .log li.in::before { background: var(--yellow); transform: rotate(45deg); }
+  .log time { font: 500 13px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+  .who { display: inline-block; margin-left: 10px; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 3px; background: var(--ink); color: #f1eee6; vertical-align: 1px; }
+  .who.alert { background: var(--marker); }
+  .log h3 { font-size: clamp(28px, 3vw, 40px); font-weight: 800; margin: 12px 0 8px; }
+  .log p { color: var(--on-paper-muted); max-width: 52ch; }
+
+  /* ── founder ── */
+  .founder { background: var(--yellow); }
+  .founder .label { color: var(--ink); }
+  .founder-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 64px; align-items: center; }
+  .founder blockquote { font: 800 clamp(36px, 4.4vw, 62px)/1 var(--display); text-transform: uppercase; margin-top: 18px; }
+  .founder blockquote em { font-style: normal; background: var(--ink); color: var(--yellow); padding: 0 .12em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .sig { margin-top: 30px; display: flex; align-items: center; gap: 18px; }
+  .sig b { font: 400 34px/1 var(--hand); transform: rotate(-4deg); white-space: nowrap; }
+  .sig span { font-size: 15px; max-width: 34ch; border-left: 2px solid var(--ink); padding-left: 16px; }
+  .founder p.story { margin-top: 26px; font-size: 18px; max-width: 58ch; }
+  .pilot { background: var(--ink); color: #f1eee6; padding: 36px 34px; border-radius: 6px; position: relative; box-shadow: 10px 10px 0 rgba(18,18,18,.2); }
+  .pilot::before { content: ""; position: absolute; top: 18px; right: 18px; width: 16px; height: 16px; border-radius: 50%; background: var(--yellow); box-shadow: inset 0 0 0 5px var(--ink-2); }
+  .pilot .label { color: var(--yellow); }
+  .pilot h3 { font-size: 40px; font-weight: 900; margin: 12px 0 20px; }
+  .pilot ul { list-style: none; margin-bottom: 30px; }
+  .pilot li { display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid #2f2f2b; color: #d8d4ca; }
+  .pilot li::before { content: ""; flex: none; width: 10px; height: 10px; margin-top: 8px; background: var(--yellow); transform: rotate(45deg); }
+
+  /* ── faq ── */
+  .faq .label { color: #8a5a00; }
+  .faq-grid { display: grid; grid-template-columns: .7fr 1.3fr; gap: 72px; }
+  .faq h2 { margin-top: 16px; }
+  details { border-top: 2px solid var(--ink); }
+  details:last-child { border-bottom: 2px solid var(--ink); }
+  summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 22px 0; cursor: pointer; font: 800 clamp(22px, 2.2vw, 28px)/1.1 var(--display); text-transform: uppercase; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "+"; flex: none; width: 36px; height: 36px; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 4px; font: 500 22px/1 var(--mono); transition: transform .25s, background .25s; }
+  details[open] summary::after { transform: rotate(45deg); background: var(--yellow); }
+  summary:hover::after { background: var(--yellow); }
+  details p { padding: 0 60px 24px 0; color: var(--on-paper-muted); font-size: 17px; }
+
+  /* ── final cta ── */
+  .final { padding: 130px 0 120px; }
+  .final h2 { font-size: clamp(60px, 10vw, 150px); color: var(--yellow); margin-top: 14px; }
+  .final-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 30px; margin-top: 34px; }
+  .final p:not(.label) { font-size: 20px; color: var(--on-ink-muted); max-width: 42ch; }
+  .final .grain::before, .final.grain::before { mix-blend-mode: screen; opacity: .06; }
+
+  footer { background: var(--ink); color: var(--on-ink-muted); border-top: 1px solid #2a2a27; padding: 30px 0 40px; font-size: 14px; }
+  footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px 28px; }
+  footer nav { gap: 22px; }
+
+  /* reveal */
+  .js .rv { opacity: 0; transform: translateY(26px); transition: opacity .8s ease, transform .8s ease; }
+  .js .rv.in { opacity: 1; transform: none; }
+  .js .invoice.rv { transform: translateY(26px) rotate(4deg); }
+  .js .invoice.rv.in { transform: rotate(1.4deg); }
+
+  @media (max-width: 1000px) {
+    .hero-top, .two, .meter-grid, .how-grid, .founder-grid, .faq-grid { grid-template-columns: 1fr; gap: 44px; }
+    .stage-inner { grid-template-columns: 1fr; justify-items: center; gap: 30px; }
+    .office { width: 100%; }
+    .how-head { position: static; }
+    .theater { background: linear-gradient(to bottom, var(--yellow) 0 14%, var(--ink) 14%); }
   }
-  .logo {
-    font-size: 22px;
-    font-weight: 700;
-    color: #1a5276;
+  @media (max-width: 640px) {
+    body { font-size: 16px; }
+    .wrap { padding: 0 18px; }
+    nav a.nl { display: none; }
+    header .wrap { height: 64px; }
+    .hero { padding-top: 34px; }
+    .theater { padding: 40px 0 60px; }
+    .stage { padding: 20px 16px 0; border-radius: 10px; }
+    .phone { width: 280px; height: 570px; }
+    .tabs { grid-template-columns: 1fr 1fr; margin: 26px -16px 0; }
+    .tab { padding: 14px 14px 16px; font-size: 14px; }
+    .tab:nth-child(3) { border-left: 0; }
+    .tab:nth-child(n+3) { border-top: 1px solid #2f2f2b; }
+    .board td, .board th { padding-left: 12px; padding-right: 12px; }
+    .board td.days { font-size: 17px; width: 52px; }
+    .board-head .label { display: none; }
+    .tape span { font-size: 30px; }
+    section.block { padding: 84px 0; }
+    .invoice { padding: 28px 18px 22px; font-size: 13px; }
+    .circle { width: calc(100% + 110px); }
+    .note.n1 { font-size: 18px; }
+    .readout { padding: 26px 22px; }
+    .log { padding-left: 50px; }
+    .log::before { left: 10px; }
+    .log li::before { left: -48px; }
+    details p { padding-right: 0; }
+    .btn { width: 100%; justify-content: center; }
+    nav .btn { width: auto; }
+    .sig { flex-direction: column; align-items: flex-start; }
+    .sig span { border-left: 0; padding-left: 0; }
   }
-  nav a {
-    color: #444;
-    text-decoration: none;
-    margin-left: 28px;
-    font-size: 15px;
-  }
-  .hero {
-    padding: 90px 5% 70px;
-    max-width: 780px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .hero h1 {
-    font-size: 44px;
-    font-weight: 800;
-    line-height: 1.15;
-    color: #1a1a2e;
-    margin-bottom: 20px;
-  }
-  .hero h1 span { color: #1a5276; }
-  .hero p {
-    font-size: 19px;
-    color: #555;
-    max-width: 560px;
-    margin: 0 auto 32px;
-  }
-  .cta {
-    display: inline-block;
-    background: #1a5276;
-    color: white;
-    padding: 14px 32px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 16px;
-  }
-  .features {
-    background: #f7f9fb;
-    padding: 70px 5%;
-  }
-  .features-inner {
-    max-width: 1000px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 32px;
-  }
-  .feature {
-    background: white;
-    padding: 28px;
-    border-radius: 12px;
-    border: 1px solid #eee;
-  }
-  .feature-icon {
-    font-size: 28px;
-    margin-bottom: 12px;
-  }
-  .feature h3 {
-    font-size: 18px;
-    margin-bottom: 8px;
-    color: #1a1a2e;
-  }
-  .feature p {
-    font-size: 15px;
-    color: #666;
-  }
-  .about {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 70px 5%;
-    text-align: center;
-  }
-  .about h2 {
-    font-size: 28px;
-    margin-bottom: 16px;
-    color: #1a1a2e;
-  }
-  .about p {
-    font-size: 16px;
-    color: #555;
-  }
-  footer {
-    border-top: 1px solid #eee;
-    padding: 36px 5%;
-    text-align: center;
-    font-size: 14px;
-    color: #888;
-  }
-  footer a {
-    color: #1a5276;
-    text-decoration: none;
-  }
-  @media (max-width: 600px) {
-    .hero h1 { font-size: 32px; }
-    .hero p { font-size: 17px; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition: none !important; }
+    .tape-track { animation: none; }
   }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">SiteMind</div>
-  <nav>
-    <a href="#features">Features</a>
-    <a href="#about">About</a>
-    <a href="mailto:elgerente2809@gmail.com">Contact</a>
-  </nav>
+<header id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="SiteMind, back to top"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 25 16 7l9 18h-5l-4-8-4 8z"/></svg></span>SiteMind</a>
+    <nav aria-label="Main">
+      <a class="nl" href="#problem">The problem</a>
+      <a class="nl" href="#cost">The cost</a>
+      <a class="nl" href="#how">How it works</a>
+      <a class="nl" href="#faq">FAQ</a>
+      <a class="btn btn-ink" href="mailto:elgerente2809@gmail.com?subject=SiteMind%20demo&amp;body=Hi%20Mauricio%2C%0A%0AI%27d%20like%20to%20see%20SiteMind.%0A%0ACompany%3A%0AJobs%20running%20right%20now%3A%0A">Book a demo</a>
+    </nav>
+  </div>
 </header>
 
-<section class="hero">
-  <h1>Never lose track of <span>equipment on rent</span> again.</h1>
-  <p>SiteMind automatically tracks every piece of rented equipment across your jobsites and reminds your team before rental periods end — so you stop paying for equipment nobody's using.</p>
-  <a class="cta" href="mailto:elgerente2809@gmail.com">Get in touch</a>
-</section>
+<main id="top">
 
-<section class="features" id="features">
-  <div class="features-inner">
-    <div class="feature">
-      <div class="feature-icon">📋</div>
-      <h3>Real-time rental status</h3>
-      <p>Every rental request is logged and tracked from submission through pickup — always know what's active, where, and for how long.</p>
+<section class="hero grain" aria-labelledby="hero-title">
+  <div class="wrap hero-top">
+    <div>
+      <p class="label kicker"><span class="pulse" aria-hidden="true"></span>Rental control for specialty contractors</p>
+      <h1 id="hero-title">Stop paying<br> for lifts <span class="scrawl">nobody's using.<svg viewBox="0 0 400 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 15 C 90 6, 220 4, 396 10 M 30 21 C 140 14, 260 13, 372 18"/></svg></span></h1>
     </div>
-    <div class="feature">
-      <div class="feature-icon">⏰</div>
-      <h3>Automatic reminders</h3>
-      <p>Field superintendents get SMS and email reminders about active rentals and upcoming due dates, so nothing gets forgotten on-site.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">💰</div>
-      <h3>Stop overpaying</h3>
-      <p>Catch equipment that should have gone off rent days ago, before it turns into an unnecessary charge on next month's invoice.</p>
+    <div class="hero-side">
+      <p>SiteMind keeps count of every rented lift, scissor and swing stage on every job. Crews order from their phone, the rental company gets the request, and every Monday each super sees what's still on rent. Before the invoice does.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-ink" href="mailto:elgerente2809@gmail.com?subject=SiteMind%20demo&amp;body=Hi%20Mauricio%2C%0A%0AI%27d%20like%20to%20see%20SiteMind.%0A%0ACompany%3A%0AJobs%20running%20right%20now%3A%0A">Book a 15-min demo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="link" href="#demo">Watch it work</a>
+      </div>
+      <p class="built"><b>Built on site.</b><span>By the person who ran equipment rentals for a 60-site waterproofing contractor in the DMV.</span></p>
     </div>
   </div>
 </section>
 
-<section class="about" id="about">
-  <h2>Built by contractors, for contractors</h2>
-  <p>SiteMind started as an internal tool to solve a simple problem: equipment rentals get forgotten, and forgotten rentals cost real money. We built the system to fix that — and now we're bringing it to other construction teams facing the same issue.</p>
+<section class="theater grain" id="demo" aria-labelledby="demo-title">
+  <div class="wrap">
+    <h2 class="sr" id="demo-title">See SiteMind work</h2>
+    <div class="stage" id="stage" data-scene="1">
+      <p class="sr">Animated example. A foreman orders a 19 foot scissor lift from a phone, SiteMind checks the request, the rental company receives it by text, and a week later the superintendent's Monday summary flags a boom lift that has been on rent 31 days.</p>
+      <div class="stage-inner" aria-hidden="true">
+        <div>
+          <p class="who-label" id="whoLabel">The foreman's phone</p>
+          <div class="phone">
+            <div class="screen">
+              <div class="notch"></div>
+              <div class="sbar"><span id="clock">6:12</span><span>5G</span></div>
+
+              <div class="scene s1">
+                <div class="app-bar"><i></i>New rental request</div>
+                <div class="f"><label>Job</label><div class="fld"><span class="type" style="--d:.3s;--n:15">Riverside Plaza</span></div></div>
+                <div class="f"><label>Equipment</label><div class="fld"><span class="type" style="--d:1s;--n:26">19ft scissor lift, electric</span></div></div>
+                <div class="f"><label>Rental company</label><div class="chips"><span class="opt pick" style="--d:1.8s">Northway Rentals</span><span class="opt">Ridgeline</span></div></div>
+                <div class="f"><label>On-site contact</label><div class="fld"><span class="type" style="--d:2.2s;--n:22">Mike R. (571) 555-0142</span></div></div>
+                <div class="f"><label>Start date</label><div class="fld"><span class="type" style="--d:2.9s;--n:10">Mon, Oct 6</span></div></div>
+                <div class="p-btn tap" style="--d:3.7s">Review request</div>
+              </div>
+
+              <div class="scene s2">
+                <div class="app-bar"><i></i>Review before sending</div>
+                <div class="ai">
+                  <span class="pill">Standard</span>
+                  <p>19ft electric scissor lift for Riverside Plaza, starting Mon 10/6. Northway Rentals delivers. Mike R. takes it on site.</p>
+                  <dl><dt>Category</dt><dd>Aerial lift</dd><dt>Super</dt><dd>Dana K.</dd><dt>Address</dt><dd>1200 Riverside Dr</dd></dl>
+                </div>
+                <p class="hint">Nothing is sent until you confirm.</p>
+                <div class="p-btn tap confirm" id="confirm" style="--d:2s"><span class="a">Confirm &amp; send</span><span class="b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Sent</span></div>
+              </div>
+
+              <div class="scene s3">
+                <div class="msg-head"><div class="avatar"></div><b>SiteMind</b><span>Text Message · Mon 6:13 AM</span></div>
+                <div class="bubble" style="--d:.3s">NEW RENTAL REQUEST<br>Riverside Plaza<br>1200 Riverside Dr, Alexandria VA<br><br>19ft scissor lift, electric<br>Start: Mon 10/6<br>On site: Mike R. (571) 555-0142<br>Super: Dana K.</div>
+                <p class="mailnote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Same order sent to their dispatch email</p>
+              </div>
+
+              <div class="scene s4">
+                <div class="msg-head"><div class="avatar"></div><b>SiteMind</b><span>Text Message · Mon 7:00 AM</span></div>
+                <div class="bubble" style="--d:.4s">Weekly rental summary - Dana K.<br><br>RIVERSIDE PLAZA<br>60ft boom lift - <span class="flag">31 days</span><br>19ft scissor lift - 7 days<br><br>HARBOR ST GARAGE<br>Swing stage - 12 days<br><br>3 items on rent.</div>
+                <div class="bubble" style="--d:1.6s"><span class="flag">Day 30:</span> 60ft boom lift at Riverside Plaza. The office has been notified.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="office">
+          <p class="who-label">The office</p>
+          <div class="board">
+            <div class="board-head"><b>Rentals</b><span class="label">All jobs</span><span class="later">One week later</span></div>
+            <table>
+              <thead><tr><th>Equipment</th><th>Days</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr id="rowNew" hidden><td>19ft scissor lift<small>Riverside Plaza · Mike R.</small></td><td class="days" data-a="0" data-b="7">0</td><td><span class="st pending" id="newSt">Pending</span></td></tr>
+                <tr id="rowBoom"><td>60ft boom lift<small>Riverside Plaza · Dana K.</small></td><td class="days" data-a="24" data-b="31">24</td><td><span class="st on" id="boomSt">On rent</span></td></tr>
+                <tr><td>Swing stage<small>Harbor St Garage · Luis G.</small></td><td class="days" data-a="5" data-b="12">5</td><td><span class="st on">On rent</span></td></tr>
+                <tr><td>45ft articulating lift<small>Cedar Lofts · Called off 9/23</small></td><td class="days">21</td><td><span class="st off">Off rent</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="caption" id="caption"></p>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Demo steps">
+        <button class="tab" role="tab" aria-selected="true"><span class="bar"></span><span class="label">01</span>Order from site</button>
+        <button class="tab" role="tab" aria-selected="false"><span class="bar"></span><span class="label">02</span>AI checks it</button>
+        <button class="tab" role="tab" aria-selected="false"><span class="bar"></span><span class="label">03</span>Rental co. notified</button>
+        <button class="tab" role="tab" aria-selected="false"><span class="bar"></span><span class="label">04</span>Monday report</button>
+      </div>
+    </div>
+  </div>
 </section>
 
+<div class="tape-zone" aria-hidden="true">
+  <div class="tape">
+    <div class="tape-track">
+      <span>No more forgotten lifts</span><span>No more surprise invoices</span><span>No more "who called it off?"</span><span>Every rental on the record</span>
+      <span>No more forgotten lifts</span><span>No more surprise invoices</span><span>No more "who called it off?"</span><span>Every rental on the record</span>
+    </div>
+  </div>
+</div>
+
+<section class="block problem grain" id="problem" aria-labelledby="problem-title">
+  <div class="wrap two">
+    <div class="rv">
+      <p class="label">01 / The problem</p>
+      <h2 id="problem-title">The invoice always shows up. The answer never does.</h2>
+      <p class="lead">Lifts get ordered by phone, tracked in a spreadsheet, and called off when somebody remembers. Weeks later the bill lands on the office desk and the only question anyone asks is who forgot.</p>
+      <ul class="pains">
+        <li><span>01</span><div><b>Idle equipment, full price.</b><p>The crew moved on two weeks ago. The boom lift didn't, and it's still billing.</p></div></li>
+        <li><span>02</span><div><b>Crews standing around.</b><p>One missed call and the lift isn't there at 7 AM. A whole crew waits.</p></div></li>
+        <li><span>03</span><div><b>No proof either way.</b><p>Without a record, the super blames the office and the office blames the super.</p></div></li>
+      </ul>
+    </div>
+
+    <figure class="invoice rv" aria-label="Example rental invoice with a 31-day boom lift circled in red marker and the note: job wrapped 9/12, who had this?">
+      <div class="inv-top"><b>Northway Rentals</b><p>INVOICE #48213<br>Due on receipt</p></div>
+      <div class="inv-meta"><span>Bill to: Your company</span><span>09/01 - 09/30</span></div>
+      <table>
+        <thead><tr><th>Item</th><th class="r">Days</th><th class="r">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>19' Scissor lift, electric<small>Harbor St Garage</small></td><td class="r">12</td><td class="r">$1,140.00</td></tr>
+          <tr class="hit"><td>60' Boom lift, diesel<small>Riverside Plaza</small><span class="note n1" aria-hidden="true">job wrapped 9/12. who had this??</span><svg class="circle" viewBox="0 0 300 60" preserveAspectRatio="none" aria-hidden="true"><path d="M150 4 C 60 2, 6 10, 6 30 C 6 52, 90 58, 160 56 C 240 54, 296 46, 294 28 C 292 10, 230 2, 120 6"/></svg></td><td class="r">31</td><td class="r">$4,805.00</td></tr>
+          <tr><td>32' Scissor lift<small>Cedar Lofts</small></td><td class="r">9</td><td class="r">$1,035.00</td></tr>
+          <tr><td>Delivery &amp; pickup<small>3 trips</small></td><td class="r"></td><td class="r">$585.00</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td>Subtotal</td><td></td><td class="r">$7,565.00</td></tr>
+          <tr><td>Tax</td><td></td><td class="r">$453.90</td></tr>
+          <tr><td>Total</td><td></td><td class="r">$8,018.90</td></tr>
+        </tfoot>
+      </table>
+    </figure>
+  </div>
+</section>
+
+<section class="block ink meter" id="cost" aria-labelledby="cost-title">
+  <div class="wrap">
+    <div class="rv">
+      <p class="label">02 / The meter</p>
+      <h2 id="cost-title">Run your own numbers.</h2>
+      <p class="sub">A rental called off late keeps billing until someone makes the call. Move the sliders to match your jobs.</p>
+    </div>
+    <div class="meter-grid">
+      <div class="rv">
+        <label class="dial"><span class="dial-top"><span>Rentals called off late each month</span><output id="o1"></output></span><input type="range" id="r1" min="1" max="40" value="6"></label>
+        <label class="dial"><span class="dial-top"><span>Days late, on average</span><output id="o2"></output></span><input type="range" id="r2" min="1" max="14" value="3"></label>
+        <label class="dial"><span class="dial-top"><span>Average day rate</span><output id="o3"></output></span><input type="range" id="r3" min="75" max="600" step="25" value="250"></label>
+      </div>
+      <div class="readout rv">
+        <p class="label">Paying for equipment nobody is using</p>
+        <div class="odo" id="odo" aria-hidden="true"></div>
+        <p class="sr" id="odoText" aria-live="polite"></p>
+        <p class="per">a year. That's <b id="monthly"></b> every month.</p>
+        <p class="equiv">= <b id="days"></b> days a year of a machine sitting on a job, billing.</p>
+        <p class="fine">Rough math: late call-offs × days late × day rate × 12. Your numbers, not ours.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block how grain" id="how" aria-labelledby="how-title">
+  <div class="wrap how-grid">
+    <div class="how-head rv">
+      <p class="label">03 / How it works</p>
+      <h2 id="how-title">One lift. Start to finish.</h2>
+      <p>Nothing to install. Your crews use a page on the phone they already carry, and rental companies get a normal text and email.</p>
+      <a class="btn btn-ink" href="mailto:elgerente2809@gmail.com?subject=SiteMind%20demo">See it on a real phone <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+    <ol class="log">
+      <li><time>Mon 6:12 AM</time><span class="who">Foreman</span><h3>Orders a lift from the parking lot.</h3><p>Job, equipment, rental company and who takes delivery. Under a minute, on the phone they already have.</p></li>
+      <li><time>6:13 AM</time><span class="who">SiteMind</span><h3>AI checks the order.</h3><p>A rushed description becomes a clean order the rental company can act on, with emergencies flagged. Nothing goes out until a person confirms.</p></li>
+      <li><time>6:13 AM</time><span class="who">Rental company</span><h3>Gets it by text and email.</h3><p>The on-site contact's name and number are right there for the delivery call. No account, no app, no phone tag.</p></li>
+      <li><time>Every Mon 7:00 AM</time><span class="who">Superintendent</span><h3>Sees what's still on rent.</h3><p>Every job, every machine, and how many days it's been there. Even the ones a foreman ordered.</p></li>
+      <li><time>Day 30</time><span class="who alert">Office</span><h3>Long rentals get escalated.</h3><p>At 30 days the super and the office both hear about it. Nothing sits for a month quietly.</p></li>
+      <li><time>Day 34</time><span class="who">Superintendent</span><h3>Calls it off rent from the phone.</h3><p>Logged with who and when. When the invoice arrives, the answer is already there.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="block founder grain" id="founder" aria-labelledby="founder-title">
+  <div class="wrap founder-grid">
+    <div class="rv">
+      <p class="label" id="founder-title">04 / Why this exists</p>
+      <blockquote>"Supers blamed me for rentals they forgot. <em>I had no way to prove otherwise.</em>"</blockquote>
+      <div class="sig"><b>Mauricio Ellis</b><span>Founder. Ran equipment rentals for a 60-site waterproofing contractor in the DMV.</span></div>
+      <p class="story">I was the one making the 6 AM calls, chasing off-rent numbers and answering for invoices nobody could explain. SiteMind is the system I wanted on day one: simple enough for a foreman in a hurry, with a record the office can trust.</p>
+    </div>
+    <div class="pilot rv">
+      <p class="label">Founding partner pilot</p>
+      <h3>60 days. Real jobs. A clear yes or no.</h3>
+      <ul>
+        <li>Two or three superintendents and their active jobs</li>
+        <li>Set up around your rental companies and the way you already work</li>
+        <li>A success goal we agree on in writing before we start</li>
+        <li>Founder pricing, locked in for early partners</li>
+      </ul>
+      <a class="btn btn-yellow" href="mailto:elgerente2809@gmail.com?subject=SiteMind%20pilot">Ask about the pilot <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<section class="block faq" id="faq" aria-labelledby="faq-title">
+  <div class="wrap faq-grid">
+    <div class="rv">
+      <p class="label">05 / Straight answers</p>
+      <h2 id="faq-title">Questions contractors ask.</h2>
+    </div>
+    <div class="rv">
+      <details><summary>Do my crews need to download an app?</summary><p>No. It's a web page that works on any phone. They save it to the home screen and it opens like an app.</p></details>
+      <details><summary>Do rental companies have to sign up?</summary><p>No. They get a normal text and email with the order, the address and the on-site contact. Same as a phone call, minus the phone tag.</p></details>
+      <details><summary>We already use Procore or Viewpoint.</summary><p>Those track projects and the equipment you own. Ask what happens when a rented lift is done: does anyone get told? SiteMind covers that gap, the rented stuff that lives in phone calls and spreadsheets.</p></details>
+      <details><summary>What does the AI actually do?</summary><p>It reads the request, turns it into a clean order, and flags emergencies or missing details. A person always reviews and confirms before anything is sent.</p></details>
+      <details><summary>Rentals don't have an end date. Does that break it?</summary><p>That's the point. Most rentals are open-ended, so SiteMind counts days on rent instead of chasing due dates. It's the number nobody tracks today.</p></details>
+      <details><summary>Where does our data live?</summary><p>In a shared table your office can filter, sort and export. Every request keeps who ordered it, when, for which job, and when it went off rent.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="ink final" aria-labelledby="final-title">
+  <div class="wrap">
+    <p class="label" style="color:var(--on-ink-muted)">Quick question</p>
+    <h2 id="final-title" class="rv">What's on rent right now?</h2>
+    <div class="final-row rv">
+      <p>If you had to stop and think about it, let's talk. Fifteen minutes, on a real phone, start to finish.</p>
+      <a class="btn btn-yellow" href="mailto:elgerente2809@gmail.com?subject=SiteMind%20demo&amp;body=Hi%20Mauricio%2C%0A%0AI%27d%20like%20to%20see%20SiteMind.%0A%0ACompany%3A%0AJobs%20running%20right%20now%3A%0A">Book a 15-min demo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+  </div>
+</section>
+
+</main>
+
 <footer>
-  Questions? Reach out at <a href="mailto:elgerente2809@gmail.com">elgerente2809@gmail.com</a>
+  <div class="wrap">
+    <span>© 2026 SiteMind · <a href="mailto:elgerente2809@gmail.com">elgerente2809@gmail.com</a></span>
+    <nav aria-label="Legal">
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="opt-in.html">SMS opt-in</a>
+    </nav>
+  </div>
 </footer>
 
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // nav turns dark once the yellow hero scrolls away
+  const nav = document.getElementById('nav');
+  new IntersectionObserver(([e]) => nav.classList.toggle('dark', !e.isIntersecting), { rootMargin: '-72px 0px 0px 0px' })
+    .observe(document.querySelector('.hero'));
+
+  // reveal on scroll
+  const io = new IntersectionObserver(entries => entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    e.target.classList.add('in');
+    io.unobserve(e.target);
+    if (e.target.classList.contains('readout') && !reduce) { // roll the meter up from zero when it comes into view
+      odo.querySelectorAll('.dg > span').forEach(x => { x.style.transform = 'translateY(0)'; });
+      setTimeout(update, 300);
+    }
+  }), { threshold: .2 });
+  document.querySelectorAll('.rv, .log li').forEach(el => io.observe(el));
+
+  // ── demo stage ──
+  const stage = document.getElementById('stage');
+  const tabs = [...stage.querySelectorAll('.tab')];
+  const DUR = [4800, 3800, 3600, 5200];
+  const WHO = ["The foreman's phone", "The foreman's phone", "The rental company's phone", "The superintendent's phone"];
+  const CLOCK = ['6:12', '6:13', '6:13', '7:00'];
+  const CAPTION = [
+    'A foreman orders a lift <span>from the job site.</span>',
+    'AI checks it. <span>Nothing goes out until they confirm.</span>',
+    'The rental company gets it. <span>The office sees it instantly.</span>',
+    'Every Monday, what’s still on rent. <span>Day 30 gets flagged.</span>'
+  ];
+  const rowNew = document.getElementById('rowNew'), newSt = document.getElementById('newSt');
+  const rowBoom = document.getElementById('rowBoom'), boomSt = document.getElementById('boomSt');
+  const confirmBtn = document.getElementById('confirm');
+  const dayCells = [...stage.querySelectorAll('td.days[data-a]')];
+  let scene = 0, timer = null, sentTimer = null, visible = true, counting = 0;
+
+  function setStatus(el, cls, text) { el.className = 'st ' + cls; el.textContent = text; }
+
+  function board(n) {
+    cancelAnimationFrame(counting);
+    rowNew.hidden = n === 0;
+    if (n === 1) { rowNew.classList.remove('fresh'); void rowNew.offsetWidth; rowNew.classList.add('fresh'); }
+    if (n >= 2) setStatus(newSt, 'on', 'On rent'); else setStatus(newSt, 'pending', 'Pending');
+    rowBoom.classList.remove('over');
+    setStatus(boomSt, 'on', 'On rent');
+    dayCells.forEach(td => td.textContent = td.dataset.a);
+    if (n !== 3) return;
+    const start = performance.now(), len = reduce ? 0 : 1600;
+    const tick = now => {
+      const t = len ? Math.min(1, (now - start) / len) : 1;
+      dayCells.forEach(td => td.textContent = Math.round(+td.dataset.a + (td.dataset.b - td.dataset.a) * t));
+      if (t >= 1) { rowBoom.classList.add('over'); setStatus(boomSt, 'flag', 'Day 30+'); return; }
+      counting = requestAnimationFrame(tick);
+    };
+    counting = requestAnimationFrame(tick);
+  }
+
+  function go(n) {
+    scene = n;
+    stage.dataset.scene = n + 1;
+    document.getElementById('whoLabel').textContent = WHO[n];
+    document.getElementById('clock').textContent = CLOCK[n];
+    document.getElementById('caption').innerHTML = CAPTION[n];
+    tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+    void stage.offsetWidth; // restart the progress bar
+    tabs[n].style.setProperty('--dur', DUR[n] + 'ms');
+    tabs[n].setAttribute('aria-selected', 'true');
+    confirmBtn.classList.remove('done');
+    clearTimeout(sentTimer);
+    if (n === 1) sentTimer = setTimeout(() => confirmBtn.classList.add('done'), reduce ? 0 : 2300);
+    board(n);
+    clearTimeout(timer);
+    if (!reduce && visible) timer = setTimeout(() => go((n + 1) % 4), DUR[n]);
+  }
+
+  tabs.forEach((t, i) => t.addEventListener('click', () => go(i)));
+  if (reduce) stage.classList.add('still');
+  new IntersectionObserver(([e]) => {
+    const was = visible;
+    visible = e.isIntersecting;
+    stage.classList.toggle('paused', !visible);
+    if (visible && !was) go(scene);
+    if (!visible) clearTimeout(timer);
+  }, { threshold: .25 }).observe(stage);
+  go(0);
+
+  // ── cost meter ──
+  const r = [1, 2, 3].map(i => document.getElementById('r' + i));
+  const out = [1, 2, 3].map(i => document.getElementById('o' + i));
+  const odo = document.getElementById('odo');
+  const fmt = n => n.toLocaleString('en-US');
+
+  function roll(value) {
+    const s = '$' + fmt(value);
+    if (odo.dataset.len !== String(s.length)) {
+      odo.dataset.len = s.length;
+      odo.innerHTML = [...s].map(c => /\d/.test(c)
+        ? '<span class="dg"><span>' + '0123456789'.split('').join('<br>') + '</span></span>'
+        : '<span>' + c + '</span>').join('');
+    }
+    const strips = odo.querySelectorAll('.dg > span');
+    [...s.replace(/\D/g, '')].forEach((d, i) => { strips[i].style.transform = 'translateY(' + (-d) + 'em)'; });
+  }
+
+  function update() {
+    r.forEach(el => el.style.setProperty('--p', ((el.value - el.min) / (el.max - el.min) * 100) + '%'));
+    const [late, days, rate] = r.map(el => +el.value);
+    out[0].textContent = late;
+    out[1].textContent = days + (days === 1 ? ' day' : ' days');
+    out[2].textContent = '$' + rate;
+    const monthly = late * days * rate;
+    roll(monthly * 12);
+    document.getElementById('odoText').textContent = '$' + fmt(monthly * 12) + ' a year';
+    document.getElementById('monthly').textContent = '$' + fmt(monthly);
+    document.getElementById('days').textContent = fmt(late * days * 12);
+  }
+  r.forEach(el => el.addEventListener('input', update));
+  update();
+})();
+</script>
 </body>
 </html>
